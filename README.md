@@ -50,5 +50,5 @@ and I'm open to suggestions.)
 Chris Moller
 henrik@henrikmoller.me
 
-(If you care, the entirety of my name is Christian Henrik Luja M&#00f8;ller, giving
-me a great deal of flexibility in obfuscating my identity.)
+(If you care, the entirety of my name is Christian Henrik Luja Møller,
+giving me a great deal of flexibility in obfuscating my identity.)
