@@ -12,6 +12,6 @@ using any function name that pleases you instead of 'mtx'.
 
 The general form of the use 
 
-##Determinants
+## Determinants
 
 
