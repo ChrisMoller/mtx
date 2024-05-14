@@ -21,7 +21,7 @@ or dyadic:
 &nbsp;&nbsp;&nbsp;&nbsp;x mtx y
 
 In the monadic form, an "axis" of 'c' (or any string that starts with 'c' or
-'C') will do the cross product of the arguement.  'd" or 'D' get the
+'C') will do the cross product of the arguement.  'd" or 'D' will get the
 determinant.  If neither is specified, the default is determinant.  The dyadic
 form always yields the cross product.   
 
@@ -47,7 +47,7 @@ it may mean.
 I may add more functionality in later releases.  (Eigen pairs come to mind,
 and I'm open to suggestions.)
 
-Chris Moller
+Chris Moller  
 henrik@henrikmoller.me
 
 (If you care, the entirety of my name is Christian Henrik Luja Møller,
