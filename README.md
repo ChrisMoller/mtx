@@ -21,9 +21,9 @@ or dyadic:
 &nbsp;&nbsp;&nbsp;&nbsp;x mtx y
 
 In the monadic form, an "axis" of 'c' (or any string that starts with 'c' or
-'C') will do the cross product of the arguement.  'd" or 'D' get thr
+'C') will do the cross product of the arguement.  'd" or 'D' get the
 determinant.  If neither is specified, the default is determinant.  The dyadic
-form is always the cross product.   
+form always yields the cross product.   
 
 (It's
 handy to create a couple of named lambdas for these:  
@@ -43,7 +43,3 @@ are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.
-
-## Determinants
-
-
