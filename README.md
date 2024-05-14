@@ -42,4 +42,13 @@ for reasons I'm not enough of a mathematician to understand, cross products
 are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
-it may mean.
+it may mean.  
+
+I may add more functionality in later releases.  (Eigen pairs come to mind,
+and I'm open to suggestions.)
+
+Chris Moller
+henrik@henrikmoller.me
+
+(If you care, the entirety of my name is Christian Henrik Luja Moller, giving
+me a great deal of flexibility in obfuscating my identity.)
