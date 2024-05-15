@@ -1,8 +1,8 @@
 # MTX
 
-mtx is collection of matrix operations not natively supported by gnu APL.
-For this frst release it includes support for finding the determinant of
-a matrix and the cross product of vectors.  
+mtx is collection of matrix operations not natively supported by gnu APL,
+including support for finding the determinant ofa matrix,
+the cross product of vectors, and the angle between vectors.
 
 To use mtx, it must be fixed in the workspace:
 
@@ -19,11 +19,13 @@ The general form of the use of mtx is either monadic:
 or dyadic:
 
 &nbsp;&nbsp;&nbsp;&nbsp;x mtx y
+&nbsp;&nbsp;&nbsp;&nbsp;x mtx['a'] y
 
 In the monadic form, an "axis" of 'c' (or any string that starts with 'c' or
 'C') will do the cross product of the arguement.  'd" or 'D' will get the
-determinant.  If neither is specified, the default is determinant.  The dyadic
-form always yields the cross product.   
+determinant.  If neither is specified, the default is determinant.  If the
+axis is unspecified or 'c', he dyadic form yields the cross product.  If 'a',
+it yields the vector angle.
 
 (It's
 handy to create a couple of named lambdas for these:  

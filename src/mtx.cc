@@ -412,7 +412,7 @@ complex<double>
 magnitude (vector<complex<double>> &v)
 {
   complex<double> rc (0.0, 0.0);
-  loop (i, v.size ()) rc = v[i] * v[i];
+  loop (i, v.size ()) rc += v[i] * v[i];
   rc = sqrt (rc);
   return rc;
 }
@@ -508,11 +508,19 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	Av[c] = complex<double> (Avr, Avi);
 	Bv[c] = complex<double> (Bvr, Bvi);
       }
-      complex<double>Amag = magnitude (Av);
-      complex<double>Bmag = magnitude (Bv);
-      complex<double>mag = Amag * Bmag;
-      complex<double> dp (0.0, 0.0);
-      loop (i, Av.size ()) dp += Av[i] * Bv[i];
+      complex<double> Amag = magnitude (Av);
+      complex<double> Bmag = magnitude (Bv);
+      complex<double> mag = Amag * Bmag;
+      if (mag != complex<double>(0.0, 0.0)) {
+	complex<double> dp (0.0, 0.0);
+	loop (i, Av.size ()) dp += Av[i] * Bv[i];
+	complex<double> an = acos (dp/mag);
+	rc = ComplexScalar((APL_Float)an.real (), an.imag (), LOC);
+      }
+      else {
+	UERR << "Invalid vector(s)." << endl;
+	DOMAIN_ERROR;
+      }
     }
     break;
   }

@@ -1,4 +1,4 @@
-AC_INIT([APL matrix native functions], [1.0.0], [henrik@henrimoller.me],[mtx])
+AC_INIT([APL matrix native functions], [1.1.0], [henrik@henrimoller.me],[mtx])
 AC_PREFIX_DEFAULT( /usr/local )
 AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_HEADERS([mtx_config.h])
