@@ -125,7 +125,8 @@ Matrix::show ()
 enum {
   OP_UNKNOWN,
   OP_DETERMINANT,
-  OP_CROSS_PRODUCT
+  OP_CROSS_PRODUCT,
+  OP_VECTOR_ANGLE
 };
 
 static bool
@@ -353,7 +354,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	case OP_DETERMINANT:
 	  {
 	    complex<double>det = getDet (mtx);
-	    
 	    rc = (det.imag () == 0.0) ?
 	      FloatScalar(det.real (), LOC) :
 	      ComplexScalar(det.real (), det.imag (), LOC);
@@ -407,10 +407,34 @@ eval_B(Value_P B, const NativeFunction * caller)
   return eval_XB (X, B, caller);
 }
 
+static
+complex<double>
+magnitude (vector<complex<double>> &v)
+{
+  complex<double> rc (0.0, 0.0);
+  loop (i, v.size ()) rc = v[i] * v[i];
+  rc = sqrt (rc);
+  return rc;
+}
+
 static Token
 eval_AXB(Value_P A, Value_P X, Value_P B,
 	 const NativeFunction * caller)
 {
+  int op = OP_UNKNOWN;
+  
+  if (X->is_char_string ()) {
+    const UCS_string  ustr = X->get_UCS_ravel();
+    UTF8_string which (ustr);
+    switch(*which.c_str ()) {
+    case 'a':
+    case 'A': op = OP_VECTOR_ANGLE; break;
+    case 'c':
+    case 'C': op = OP_CROSS_PRODUCT; break;
+    }
+  }
+  else if (X->is_numeric_scalar()) 
+    op = X->get_sole_integer ();
   Value_P rc = Str0(LOC);
   
   const CellType A_celltype = A->deep_cell_types();
@@ -423,49 +447,76 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     UERR << "Non-numeric argument." << endl;
     DOMAIN_ERROR;
   }
+  
   const ShapeItem A_count   = A->element_count();
   const auto      A_rank    = A->get_rank();
   const ShapeItem B_count   = B->element_count();
   const auto      B_rank    = B->get_rank();
 
-  if (A_rank == 1 && B_rank == 1 && A_count == B_count && A_count == 3) {
-    Matrix *mtx = new Matrix (3, 3);
-    loop (c, 3) {
-      const Cell & Av = A->get_cravel (c);
-      const Cell & Bv = B->get_cravel (c);
-      APL_Float Avr = Av.get_real_value ();
-      APL_Float Avi = Av.is_complex_cell () ? Av.get_imag_value () : 0.0;
-      APL_Float Bvr = Bv.get_real_value ();
-      APL_Float Bvi = Bv.is_complex_cell () ? Av.get_imag_value () : 0.0;
-      mtx->val (0, c, complex (1.0, 0.0));
-      mtx->val (1, c, complex (Avr, Avi));
-      mtx->val (2, c, complex (Bvr, Bvi));
-    }
-    {
-      vector<complex<double>> cp = getCross (mtx);
-      Shape shape_Z;
-      shape_Z.add_shape_item(mtx->cols ());
-      rc = Value_P (shape_Z, LOC);
-      bool is_cpx = false;
-      for (int i = 0; i < mtx->cols (); i++) {
-	if (cp[i].imag () != 0.0) {
-	  is_cpx = true;
-	  break;
+  switch(op) {
+  case OP_CROSS_PRODUCT:
+    if (A_rank == 1 && B_rank == 1 && A_count == B_count && A_count == 3) {
+      Matrix *mtx = new Matrix (3, 3);
+      loop (c, 3) {
+	const Cell & Av = A->get_cravel (c);
+	const Cell & Bv = B->get_cravel (c);
+	APL_Float Avr = Av.get_real_value ();
+	APL_Float Avi = Av.is_complex_cell () ? Av.get_imag_value () : 0.0;
+	APL_Float Bvr = Bv.get_real_value ();
+	APL_Float Bvi = Bv.is_complex_cell () ? Bv.get_imag_value () : 0.0;
+	mtx->val (0, c, complex (1.0, 0.0));
+	mtx->val (1, c, complex (Avr, Avi));
+	mtx->val (2, c, complex (Bvr, Bvi));
+      }
+      {
+	vector<complex<double>> cp = getCross (mtx);
+	Shape shape_Z;
+	shape_Z.add_shape_item(mtx->cols ());
+	rc = Value_P (shape_Z, LOC);
+	bool is_cpx = false;
+	for (int i = 0; i < mtx->cols (); i++) {
+	  if (cp[i].imag () != 0.0) {
+	    is_cpx = true;
+	    break;
+	  }
 	}
+	for (int i = 0; i < mtx->cols (); i++) {
+	  if (is_cpx) 
+	    (*rc).set_ravel_Complex (i, cp[i].real (), cp[i].imag ());
+	  else
+	    (*rc).set_ravel_Float (i, cp[i].real ());
+	}
+	rc->check_value(LOC);
       }
-      for (int i = 0; i < mtx->cols (); i++) {
-	if (is_cpx) 
-	  (*rc).set_ravel_Complex (i, cp[i].real (), cp[i].imag ());
-	else
-	  (*rc).set_ravel_Float (i, cp[i].real ());
-      }
-      rc->check_value(LOC);
     }
+    else {
+      UERR << "Invalid rank.." << endl;
+      RANK_ERROR;
+    }
+    break;
+  case OP_VECTOR_ANGLE:
+    if (A_rank == 1 && B_rank == 1 && A_count == B_count) {
+      vector<complex<double>> Av (A_count);
+      vector<complex<double>> Bv (B_count);
+      loop (c, A_count) {
+	const Cell & Ac = A->get_cravel (c);
+	const Cell & Bc = B->get_cravel (c);
+	APL_Float Avr = Ac.get_real_value ();
+	APL_Float Avi = Ac.is_complex_cell () ? Ac.get_imag_value () : 0.0;
+	APL_Float Bvr = Bc.get_real_value ();
+	APL_Float Bvi = Bc.is_complex_cell () ? Bc.get_imag_value () : 0.0;
+	Av[c] = complex<double> (Avr, Avi);
+	Bv[c] = complex<double> (Bvr, Bvi);
+      }
+      complex<double>Amag = magnitude (Av);
+      complex<double>Bmag = magnitude (Bv);
+      complex<double>mag = Amag * Bmag;
+      complex<double> dp (0.0, 0.0);
+      loop (i, Av.size ()) dp += Av[i] * Bv[i];
+    }
+    break;
   }
-  else {
-    UERR << "Invalid rank.." << endl;
-    RANK_ERROR;
-  }
+  
 
   return Token(TOK_APL_VALUE1, rc);
 }
