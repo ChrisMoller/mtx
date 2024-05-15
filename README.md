@@ -18,7 +18,7 @@ The general form of the use of mtx is either monadic:
 
 or dyadic:
 
-&nbsp;&nbsp;&nbsp;&nbsp;x mtx y
+&nbsp;&nbsp;&nbsp;&nbsp;x mtx y  
 &nbsp;&nbsp;&nbsp;&nbsp;x mtx['a'] y
 
 In the monadic form, an "axis" of 'c' (or any string that starts with 'c' or
