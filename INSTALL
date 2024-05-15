@@ -1,6 +1,7 @@
 Installation of mtx should be a matter of
 
 	cd mtx
+	./autoconf.sh
 	./configure
 	make
 	sudo make install
@@ -11,12 +12,6 @@ apl --show_src_dir) but if it fails, the location can be set manually
 during configure
 
 	./configure --apl-source-dir=<source dir>
-
-If the configure step fails, it may be necessary to rebuild the configuration
-script, which may be done with:
-
-	cd mtx
-	./autoconf.sh
 
 (Doing this requires that the autotools (autoconf, automake, and libtools) 
 be installed.)
