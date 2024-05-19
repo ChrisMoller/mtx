@@ -24,22 +24,8 @@
     cross←{⍺ mtx ⍵}
  ***/
 
-#include<cmath>
-#include<complex>
-#include<iostream>
-#include<fstream>
-#include<string>
+#include "../mtx_config.h"
 
-#include <dlfcn.h>
-
-#include <eigen3/Eigen/Dense>
-
-#include "Native_interface.hh"
-#include "APL_types.hh"
-#include "Shape.hh"
-#include "Value.hh"
-
-#ifdef HAVE_CONFIG_H
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
@@ -48,6 +34,25 @@
 #undef PACKAGE_URL
 #undef PACKAGE_VERSION
 #undef VERSION
+
+#include<cmath>
+#include<complex>
+#include<iostream>
+#include<fstream>
+#include<string>
+
+#include <dlfcn.h>
+
+#ifdef HAVE_EIGEN
+#include <eigen3/Eigen/Dense>
+#endif
+
+#include "Native_interface.hh"
+#include "APL_types.hh"
+#include "Shape.hh"
+#include "Value.hh"
+
+#ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
 
@@ -193,6 +198,7 @@ genCofactor (Matrix *mtx, int r, int c)
   return cf;
 }
 
+#ifdef HAVE_EIGEN
 static Matrix
 getEigenvectors (Matrix *mtx)
 {
@@ -213,7 +219,9 @@ getEigenvectors (Matrix *mtx)
   }
   return res;
 }
+#endif
 
+#ifdef HAVE_EIGEN
 static vector<complex<double>>
 getEigenvalues (Matrix *mtx)
 {
@@ -232,6 +240,7 @@ getEigenvalues (Matrix *mtx)
 
   return res;
 }
+#endif
 
 static complex<double>
 getDet (Matrix *mtx)
@@ -330,8 +339,13 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  break;
 	case OP_EIGENVECTORS:
 	case OP_EIGENVALUES:
+#ifdef HAVE_EIGEN
 	  UERR << "Scalar argument.  No eigen ops posible." << endl;
 	  RANK_ERROR;
+#else
+	  UERR << "Eigen operations not supported" << endl;
+	  DOMAIN_ERROR;
+#endif
 	  break;
 	}
       }
@@ -367,8 +381,13 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  break;
 	case OP_EIGENVECTORS:
 	case OP_EIGENVALUES:
+#ifdef HAVE_EIGEN
 	  UERR << "Vector argument.  No eigen ops posible." << endl;
 	  RANK_ERROR;
+#else
+	  UERR << "Eigen operations not supported" << endl;
+	  DOMAIN_ERROR;
+#endif
 	  break;
 	}
       }
@@ -423,6 +442,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	switch(op) {
 	case OP_EIGENVECTORS:
 	  {
+#ifdef HAVE_EIGEN
 	    Matrix res = getEigenvectors (mtx);
 	    Shape shape_Z;
 	    shape_Z.add_shape_item(mtx->rows () * mtx->cols ());
@@ -439,10 +459,15 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    shape_W.add_shape_item(mtx->rows ());
 	    shape_W.add_shape_item(mtx->cols ());
 	    (*rc).set_shape (shape_W);
+#else
+	  UERR << "Eigen operations not supported" << endl;
+	  DOMAIN_ERROR;
+#endif
 	  }
 	  break;
 	case OP_EIGENVALUES:
 	  {
+#ifdef HAVE_EIGEN
 	    vector<complex<double>> res = getEigenvalues (mtx);
 	    Shape shape_Z;
 	    shape_Z.add_shape_item(mtx->cols ());
@@ -450,6 +475,10 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    for (int i = 0; i < mtx->cols (); i++) 
 	      (*rc).set_ravel_Complex (i, res[i].real (), res[i].imag ());
 	    rc->check_value(LOC);
+#else
+	  UERR << "Eigen operations not supported" << endl;
+	  DOMAIN_ERROR;
+#endif
 	  }
 	  break;
 	case OP_DETERMINANT:
@@ -489,8 +518,13 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
       break;
     case OP_EIGENVECTORS:
     case OP_EIGENVALUES:
+#ifdef HAVE_EIGEN
       UERR << "Scalar argument.  No eigen ops posible." << endl;
       RANK_ERROR;
+#else
+      UERR << "Eigen operations not supported" << endl;
+      DOMAIN_ERROR;
+#endif
       break;
     default:		// can't deal with it
       UERR << "Invalid rank.." << endl;

@@ -26,13 +26,7 @@ fi
 
 
 AC_LANG_PUSH([C++])
-dnl #AC_CHECK_HEADER ([eigen3/Eigen/src/Core/DenseBase.h],  [], [], [hhhh])
-AC_CHECK_HEADER (eigen3/Eigen/Dense,  [], [], [hhhh])
-dnl #if test x$foundeig = xyes; then
-dnl #AC_DEFINE([EIGEN], ["1"], [eigen3 found])
-dnl #else
-dnl #AC_DEFINE([EIGEN], ["0"], [eigen3 not found])
-dnl #fi
+AC_CHECK_HEADER(eigen3/Eigen/Dense, [AC_DEFINE([HAVE_EIGEN], [1], [Has Eign3])])
 AC_LANG_POP([C++])
 
 AC_ARG_WITH([apl], AS_HELP_STRING([--with-apl],
