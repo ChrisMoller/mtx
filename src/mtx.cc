@@ -30,6 +30,9 @@
 #include<fstream>
 #include<string>
 
+#include <dlfcn.h>
+
+#include <eigen3/Eigen/Dense>
 
 #include "Native_interface.hh"
 #include "APL_types.hh"
@@ -126,7 +129,9 @@ enum {
   OP_UNKNOWN,
   OP_DETERMINANT,
   OP_CROSS_PRODUCT,
-  OP_VECTOR_ANGLE
+  OP_VECTOR_ANGLE,
+  OP_EIGENVECTORS,
+  OP_EIGENVALUES
 };
 
 static bool
@@ -140,7 +145,10 @@ bool (*close_fun_is_unused)(Cause, const NativeFunction *) = &close_fun;
 
 
 Fun_signature
-get_signature() { return SIG_Z_A_F2_B; } //
+get_signature()
+{
+  return SIG_Z_A_F2_B;
+}
 
 
 static Token
@@ -185,6 +193,46 @@ genCofactor (Matrix *mtx, int r, int c)
   return cf;
 }
 
+static Matrix
+getEigenvectors (Matrix *mtx)
+{
+  Matrix res (mtx->rows (), mtx->cols ());
+  Eigen::MatrixXcd mtxE (mtx->rows (), mtx->cols ());
+  for (int j = 0; j < mtx->rows (); j++) {
+    for (int k = 0; k < mtx->cols (); k++) {
+      mtxE (j, k) = mtx->val (j, k);
+    }
+  }
+
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE);
+
+  for (int l = 0; l < mtx->cols (); l++) {
+    for (int m = 0; m < mtx->rows (); m++) {
+      res.val (l, m, (ces.eigenvectors ().col (l))(m));
+    }
+  }
+  return res;
+}
+
+static vector<complex<double>>
+getEigenvalues (Matrix *mtx)
+{
+  vector<complex<double>> res (mtx->cols ());
+  Eigen::MatrixXcd mtxE (mtx->rows (), mtx->cols ());
+  for (int j = 0; j < mtx->rows (); j++) {
+    for (int k = 0; k < mtx->cols (); k++) {
+      mtxE (j, k) = mtx->val (j, k);
+    }
+  }
+
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE);
+
+  for (int l = 0; l < mtx->rows (); l++)
+    res[l] = ces.eigenvalues ()(l);
+
+  return res;
+}
+
 static complex<double>
 getDet (Matrix *mtx)
 {	
@@ -208,6 +256,11 @@ getDet (Matrix *mtx)
 static vector<complex<double>>
 getCross (Matrix *mtx)
 {
+      double data[] = { -1.0, 1.0, -1.0, 1.0,
+                    -8.0, 4.0, -2.0, 1.0,
+                    27.0, 9.0, 3.0, 1.0,
+                    64.0, 16.0, 4.0, 1.0 };
+
   complex<double> det (0.0, 0.0);
   vector<complex<double>> rc(mtx->cols ());
   if (mtx->rows () == 2)
@@ -249,6 +302,15 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 'c':
     case 'C': op = OP_CROSS_PRODUCT; break;
     }
+    if (op == OP_UNKNOWN) {
+      if (!strcasecmp (which.c_str (), "eigenvector"))
+	op = OP_EIGENVECTORS;
+      else if (!strcasecmp (which.c_str (), "eigenvalue"))
+	op = OP_EIGENVALUES;
+    }
+    if (op == OP_UNKNOWN) {
+      SYNTAX_ERROR;
+    }
   }
   else if (X->is_numeric_scalar()) 
     op = X->get_sole_integer ();
@@ -262,11 +324,13 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 0:		// scalar
       {
 	switch(op) {
-	case OP_DETERMINANT:
-	  rc = B;
-	  break;
 	case OP_CROSS_PRODUCT:
 	  UERR << "Scalar argument.  No cross product posible." << endl;
+	  RANK_ERROR;
+	  break;
+	case OP_EIGENVECTORS:
+	case OP_EIGENVALUES:
+	  UERR << "Scalar argument.  No eigen ops posible." << endl;
 	  RANK_ERROR;
 	  break;
 	}
@@ -298,7 +362,12 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  }
 	  break;
 	case OP_CROSS_PRODUCT:
-	  UERR << "Vector argument.  No determinant posible." << endl;
+	  UERR << "Vector argument.  No cross product posible." << endl;
+	  RANK_ERROR;
+	  break;
+	case OP_EIGENVECTORS:
+	case OP_EIGENVALUES:
+	  UERR << "Vector argument.  No eigen ops posible." << endl;
 	  RANK_ERROR;
 	  break;
 	}
@@ -314,7 +383,11 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	ShapeItem rows = B->get_shape_item(0);
 	ShapeItem cols = B->get_shape_item(1);
 
-	if (op == OP_CROSS_PRODUCT) {
+	switch(op) {
+	case OP_DETERMINANT:
+	  rc = B;
+	  break;
+	case OP_CROSS_PRODUCT:
 	  rows++;
 	  if (rows != cols) {
 	    UERR <<
@@ -322,12 +395,9 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    RANK_ERROR;
 	  }
 	}
-	else {
-	  if (rows != cols) {
-	    UERR <<
-	"For determinant, the argument must be a square matrix." << endl;
-	    RANK_ERROR;
-	  }
+	if (op != OP_CROSS_PRODUCT && rows != cols) {
+	  UERR << "Not a square matrix." << endl;
+	  RANK_ERROR;
 	}
 	
 	Matrix *mtx = new Matrix (rows, cols);
@@ -351,6 +421,37 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	}
 
 	switch(op) {
+	case OP_EIGENVECTORS:
+	  {
+	    Matrix res = getEigenvectors (mtx);
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(mtx->rows () * mtx->cols ());
+	    rc = Value_P (shape_Z, LOC);
+	    int p = 0;
+	    for (int i = 0; i < mtx->rows (); i++) {
+	      for (int j = 0; j < mtx->cols (); j++, p++) 
+		(*rc).set_ravel_Complex (p,
+					 res.val (i, j).real (),
+					 res.val (i, j).imag ());
+	    }
+	    rc->check_value(LOC);
+	    Shape shape_W;
+	    shape_W.add_shape_item(mtx->rows ());
+	    shape_W.add_shape_item(mtx->cols ());
+	    (*rc).set_shape (shape_W);
+	  }
+	  break;
+	case OP_EIGENVALUES:
+	  {
+	    vector<complex<double>> res = getEigenvalues (mtx);
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(mtx->cols ());
+	    rc = Value_P (shape_Z, LOC);
+	    for (int i = 0; i < mtx->cols (); i++) 
+	      (*rc).set_ravel_Complex (i, res[i].real (), res[i].imag ());
+	    rc->check_value(LOC);
+	  }
+	  break;
 	case OP_DETERMINANT:
 	  {
 	    complex<double>det = getDet (mtx);
@@ -385,6 +486,11 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 
 	delete mtx;
       }
+      break;
+    case OP_EIGENVECTORS:
+    case OP_EIGENVALUES:
+      UERR << "Scalar argument.  No eigen ops posible." << endl;
+      RANK_ERROR;
       break;
     default:		// can't deal with it
       UERR << "Invalid rank.." << endl;
@@ -432,9 +538,13 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     case 'c':
     case 'C': op = OP_CROSS_PRODUCT; break;
     }
+    if (op == OP_UNKNOWN) {
+      SYNTAX_ERROR;
+    }
   }
   else if (X->is_numeric_scalar()) 
     op = X->get_sole_integer ();
+
   Value_P rc = Str0(LOC);
   
   const CellType A_celltype = A->deep_cell_types();
@@ -522,6 +632,10 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	DOMAIN_ERROR;
       }
     }
+    break;
+  default:
+    UERR << "Not a dyadic operation.\n";
+    DOMAIN_ERROR;
     break;
   }
   

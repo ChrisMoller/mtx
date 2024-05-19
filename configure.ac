@@ -15,6 +15,7 @@ libdir=$libdir/apl
 
 APL_SOURCES=`apl --show_src_dir`/..
 
+
 AC_CHECK_FILE($APL_SOURCES, [foundit=yes], [foundit=no])
 if test x$foundit = xno; then
 AC_ARG_WITH([apl-source-dir],
@@ -22,6 +23,17 @@ AC_ARG_WITH([apl-source-dir],
   [Location of the GNU APL source code.]))
   APL_SOURCES=$with_apl_source_dir
 fi
+
+
+AC_LANG_PUSH([C++])
+dnl #AC_CHECK_HEADER ([eigen3/Eigen/src/Core/DenseBase.h],  [], [], [hhhh])
+AC_CHECK_HEADER (eigen3/Eigen/Dense,  [], [], [hhhh])
+dnl #if test x$foundeig = xyes; then
+dnl #AC_DEFINE([EIGEN], ["1"], [eigen3 found])
+dnl #else
+dnl #AC_DEFINE([EIGEN], ["0"], [eigen3 not found])
+dnl #fi
+AC_LANG_POP([C++])
 
 AC_ARG_WITH([apl], AS_HELP_STRING([--with-apl],
 [Specify the APL source directory]))
