@@ -15,3 +15,8 @@ during configure
 
 (Doing this requires that the autotools (autoconf, automake, and libtools) 
 be installed.)
+
+mtx supports eigenvalues and eigenvectors, but only if the Eigen3 package is
+present and is detected in the ./configure step.  Eigen3 comes with or is
+available with some Linux distribtions, and is available at
+eigen.tuxfamily.org

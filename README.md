@@ -1,10 +1,19 @@
 # MTX
 
-mtx is collection of matrix operations not natively supported by gnu APL,
-including support for finding the determinant ofa matrix,
-the cross product of vectors, and the angle between vectors.
+mtx is collection of matrix operations not natively supported by gnu APL.
+including support for:
+<ul>
+<li>Matrix determinants</li>
+<li>Matrix eigenvalues and eigenvectors</li>
+<li>Identity matrices</li>
+<li>Vector cross products</li>
+<li>Vector interior angles</li>
+</ul>
 
-To use mtx, it must be fixed in the workspace:
+## Installation
+
+See the INSTALL file on how to build mtx, but once it's built and installed
+it must be fixed in the workspace:
 
 &nbsp;&nbsp;&nbsp;&nbsp;     'libmtx.so' ⎕fx 'mtx'
 
@@ -12,45 +21,85 @@ using any function name that pleases you instead of 'mtx'.
 
 The general form of the use of mtx is either monadic:
 
-&nbsp;&nbsp;&nbsp;&nbsp;mtx y  
-&nbsp;&nbsp;&nbsp;&nbsp;mtx['c'] y  
-&nbsp;&nbsp;&nbsp;&nbsp;mtx['d'] y  
+&nbsp;&nbsp;&nbsp;&nbsp;mtx[<em>string</em>] y  
 
 or dyadic:
 
-&nbsp;&nbsp;&nbsp;&nbsp;x mtx y  
-&nbsp;&nbsp;&nbsp;&nbsp;x mtx['a'] y
+&nbsp;&nbsp;&nbsp;&nbsp;x mtx[<em>string</em>] y  
 
-In the monadic form, an "axis" of 'c' (or any string that starts with 'c' or
-'C') will do the cross product of the arguement.  'd" or 'D' will get the
-determinant.  If neither is specified, the default is determinant.  If the
-axis is unspecified or 'c', he dyadic form yields the cross product.  If 'a',
-it yields the vector angle.
+where <em>string</em> is one of:
+<ul>
+<li><em>d</em> -- determinant<li>
+<li><em>eigenvalue</em>
+<li><em>eigenvector</em>
+<li><em>i</em> -- identity<li>
+<li><em>c</em> -- cross<li>
+<li><em>a</em> -- angle<li>
+</ul>
 
-(It's
-handy to create a couple of named lambdas for these:  
+(The single-character strings can actually be any string starting with that
+letter--spell out, if you like, <em>d</em> as <em>determinant</em>.  All
+strings are case-insensitive.)
 
-&nbsp;&nbsp;&nbsp;&nbsp;cross ← {⍺ mtx['c'] ⍵}   
+It's handy to create named lambdas for the mtx opertions.  The ones I use are:
+<ul>
+<li>det   ← {mtx['d'] ⍵}</li>
+<li>eval  ← {mtx['eigenvalue'] ⍵}</li>
+<li>evec  ← {mtx['eigenvector'] ⍵}</li>
+<li>ident ← {mtx['i'] ⍵}</li>
+<li>cross ← {⍺ mtx['c'] ⍵}</li>
+<li>crossm ← {mtx['c'] ⍵}</li>
+<li>angle ← {⍺ mtx['a'] ⍵}</li>
+</ul>
 
-and
+## Details
 
-&nbsp;&nbsp;&nbsp;&nbsp;det ← {mtx['d'] ⍵}   
-)
+### Monadic
 
-The argument for determinants must be a real or complex square matrix. For
-cross products in the dyadic form, both arguments must be of rank 1 and of
-length 3.  In monadic form, the argument must have a shape of [n-1 n] though
-for reasons I'm not enough of a mathematician to understand, cross products
+#### Determinant
+
+The argument for determinants must be a real or complex square matrix and the
+function returns a real result if possible or a complex result if necessary.
+
+#### Eigenvalues, eigenvectors
+
+The argument for these operations must be a real or complex square matrix.  The
+eigenvalue function returns a complex vector of the values.  The eigenvector
+function returns a complex matrix of the same shape of the argument.
+
+#### Identity
+
+The argument for this operation must be a scalar integer and it returns a
+complex square matrix of that dimension with the value 1.0j0.0 on the diagonal
+and 0.0j0.0 elsewhere.
+
+### Dyadic
+
+#### Angle
+
+Both arguments must be rank 1 real or complex vectors and must be of the same
+length.  The function returns a complex scalar value representing the angle
+between the vectors.  (Frankly, I have no idea what it means if the result has
+a non-zero imaginary component...)
+
+### Ambivalent
+
+#### Cross product
+
+In dynadic form, both arguments must be rank 1 real or complex vectors and
+must be of length 3.  In monadic form, the argument must be a real or complex
+matrix (rank 2) of shape <em>n</em>-1 × <em>n</em> and composed of <em>n</em>-1
+real or complex vectors of length  <em>n</em>.
+
+The function returns the real or complex cross product of those
+vectors, i.e., a vector of the same length orthogonal to the arguments.
+For reasons I'm not enough of a mathematician to understand, cross products
 are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.  
 
-I may add more functionality in later releases.  (Eigen pairs come to mind,
-and I'm open to suggestions.)
+I may add more functionality in later releases.  I'm open to suggestions.
 
 Chris Moller  
 henrik@henrikmoller.me
-
-(If you care, the entirety of my name is Christian Henrik Luja Møller,
-giving me a great deal of flexibility in obfuscating my identity.)

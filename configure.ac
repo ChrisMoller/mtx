@@ -26,12 +26,19 @@ fi
 
 
 AC_LANG_PUSH([C++])
-AC_CHECK_HEADER(eigen3/Eigen/Dense, [AC_DEFINE([HAVE_EIGEN], [1], [Has Eign3])])
+AC_CHECK_HEADER(eigen3/Eigen/Dense,
+[AC_DEFINE([HAVE_EIGEN], [1], [Has Eign3])],
+[
+  echo "";
+  echo "Eigen3 package not found.";
+  echo "If you need eigenvectors or eigenvalues, you need to install the package.";
+  echo "It can be found at https://eigen.tuxfamily.org/index.php?title=Main_Page";
+  echo "";
+])
 AC_LANG_POP([C++])
 
 AC_ARG_WITH([apl], AS_HELP_STRING([--with-apl],
 [Specify the APL source directory]))
-
 if test "x$with_apl" != "x"; then
   APL_SOURCES=$with_apl
 fi

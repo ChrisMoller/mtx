@@ -136,7 +136,8 @@ enum {
   OP_CROSS_PRODUCT,
   OP_VECTOR_ANGLE,
   OP_EIGENVECTORS,
-  OP_EIGENVALUES
+  OP_EIGENVALUES,
+  OP_IDENT
 };
 
 static bool
@@ -233,7 +234,7 @@ getEigenvalues (Matrix *mtx)
     }
   }
 
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE);
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE, false);
 
   for (int l = 0; l < mtx->rows (); l++)
     res[l] = ces.eigenvalues ()(l);
@@ -310,6 +311,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 'D': op = OP_DETERMINANT; break;
     case 'c':
     case 'C': op = OP_CROSS_PRODUCT; break;
+    case 'i':
+    case 'I': op = OP_IDENT; break;
     }
     if (op == OP_UNKNOWN) {
       if (!strcasecmp (which.c_str (), "eigenvector"))
@@ -336,6 +339,28 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	case OP_CROSS_PRODUCT:
 	  UERR << "Scalar argument.  No cross product posible." << endl;
 	  RANK_ERROR;
+	  break;
+	case OP_IDENT:
+	  {
+	    int dim = B->get_sole_integer();
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(dim * dim);
+	    rc = Value_P (shape_Z, LOC);
+
+	    int p = 0;
+	    for (int i = 0; i < dim; i++) {
+	      for (int j = 0; j < dim; j++, p++) 
+		(*rc).set_ravel_Complex (p,
+					 ((i == j) ? 1.0 : 0.0),
+					 0.0);
+	    }
+	    
+	    rc->check_value(LOC);
+	    Shape shape_W;
+	    shape_W.add_shape_item (dim);
+	    shape_W.add_shape_item (dim);
+	    (*rc).set_shape (shape_W);
+	  }
 	  break;
 	case OP_EIGENVECTORS:
 	case OP_EIGENVALUES:
@@ -377,6 +402,9 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  break;
 	case OP_CROSS_PRODUCT:
 	  UERR << "Vector argument.  No cross product posible." << endl;
+	  RANK_ERROR;
+	  break;
+	case OP_IDENT:
 	  RANK_ERROR;
 	  break;
 	case OP_EIGENVECTORS:
@@ -440,6 +468,9 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	}
 
 	switch(op) {
+	case OP_IDENT:
+	  RANK_ERROR;
+	  break;
 	case OP_EIGENVECTORS:
 	  {
 #ifdef HAVE_EIGEN
