@@ -422,8 +422,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	      complex<double>t12 = sina * sinb * cosg - cosa * sing;;
 	      
 	      complex<double>t20 = -sinb;
-	      complex<double>t21 =  sina * cosb;
-	      complex<double>t22 =  cosa * cosb;
+	      complex<double>t21 =  cosb * sing;
+	      complex<double>t22 =  cosb * cosg;
 
 	      (*rc).set_ravel_Complex (0,  t00.real (),  t00.imag ());
 	      (*rc).set_ravel_Complex (1,  t01.real (),  t01.imag ());
