@@ -8,6 +8,7 @@ including support for:
 <li>Identity matrices</li>
 <li>Vector cross products</li>
 <li>Vector interior angles</li>
+<li>Vector or scalar rotation matrix</li>
 </ul>
 
 ## Installation
@@ -35,6 +36,7 @@ where <em>string</em> is one of:
 <li><em>i</em> -- identity<li>
 <li><em>c</em> -- cross<li>
 <li><em>a</em> -- angle<li>
+<li><em>r</em> -- rotation<li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -43,13 +45,14 @@ strings are case-insensitive.)
 
 It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <ul>
-<li>det   ← {mtx['d'] ⍵}</li>
-<li>eval  ← {mtx['eigenvalue'] ⍵}</li>
-<li>evec  ← {mtx['eigenvector'] ⍵}</li>
-<li>ident ← {mtx['i'] ⍵}</li>
-<li>cross ← {⍺ mtx['c'] ⍵}</li>
+<li>det    ← {mtx['d'] ⍵}</li>
+<li>eval   ← {mtx['eigenvalue'] ⍵}</li>
+<li>evec   ← {mtx['eigenvector'] ⍵}</li>
+<li>ident  ← {mtx['i'] ⍵}</li>
+<li>cross  ← {⍺ mtx['c'] ⍵}</li>
 <li>crossm ← {mtx['c'] ⍵}</li>
-<li>angle ← {⍺ mtx['a'] ⍵}</li>
+<li>angle  ← {⍺ mtx['a'] ⍵}</li>
+<li>rotate ← {⍺ mtx['r'] ⍵}</li>
 </ul>
 
 ## Details
@@ -72,6 +75,12 @@ function returns a complex matrix of the same shape of the argument.
 The argument for this operation must be a scalar integer and it returns a
 complex square matrix of that dimension with the value 1.0j0.0 on the diagonal
 and 0.0j0.0 elsewhere.
+
+#### Rotate
+
+If the argument is a scaler, the function returns a 2 × 2 2D rotation
+transformation matrix.  If the argument is a ⍴3 vector, the function returns
+a 3 × 3  rotation transformation matrix.
 
 ### Dyadic
 
