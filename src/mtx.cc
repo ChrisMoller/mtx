@@ -19,10 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/***
-    det←{mtx['d']⍵}
-    cross←{⍺ mtx ⍵}
- ***/
+// https://www.microapl.com/apl_help/ch_020_030_030.htm
+// https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions
 
 #include "../mtx_config.h"
 
@@ -137,7 +135,8 @@ enum {
   OP_VECTOR_ANGLE,
   OP_EIGENVECTORS,
   OP_EIGENVALUES,
-  OP_IDENT
+  OP_IDENT,
+  OP_ROTATION_MATRIX
 };
 
 static bool
@@ -289,8 +288,6 @@ getCross (Matrix *mtx)
   return rc;
 }  
 
-// https://www.microapl.com/apl_help/ch_020_030_030.htm
-
 static Token
 eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 {
@@ -313,6 +310,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 'C': op = OP_CROSS_PRODUCT; break;
     case 'i':
     case 'I': op = OP_IDENT; break;
+    case 'r':
+    case 'R': op = OP_ROTATION_MATRIX; break;
     }
     if (op == OP_UNKNOWN) {
       if (!strcasecmp (which.c_str (), "eigenvector"))
@@ -336,6 +335,29 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 0:		// scalar
       {
 	switch(op) {
+	case OP_ROTATION_MATRIX:
+	  {
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(4);
+	    rc = Value_P (shape_Z, LOC);
+	    const Cell & Bv = B->get_cravel (0);
+	    APL_Float xvr = Bv.get_real_value ();
+	    APL_Float xvi = Bv.is_complex_cell ()
+	      ? Bv.get_imag_value () : 0.0;
+	    complex<double>theta (xvr, xvi);
+	    complex<double>cosx = cos (theta);
+	    complex<double>sinx = sin (theta);
+	    (*rc).set_ravel_Complex (0,  cosx.real (),  cosx.imag ());
+	    (*rc).set_ravel_Complex (1, -sinx.real (), -sinx.imag ());
+	    (*rc).set_ravel_Complex (2,  sinx.real (),  sinx.imag ());
+	    (*rc).set_ravel_Complex (3,  cosx.real (),  cosx.imag ());
+	    rc->check_value(LOC);
+	    Shape shape_W;
+	    shape_W.add_shape_item (2);
+	    shape_W.add_shape_item (2);
+	    (*rc).set_shape (shape_W);
+	  }
+	  break;
 	case OP_CROSS_PRODUCT:
 	  UERR << "Scalar argument.  No cross product posible." << endl;
 	  RANK_ERROR;
@@ -354,7 +376,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 					 ((i == j) ? 1.0 : 0.0),
 					 0.0);
 	    }
-	    
 	    rc->check_value(LOC);
 	    Shape shape_W;
 	    shape_W.add_shape_item (dim);
@@ -362,15 +383,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    (*rc).set_shape (shape_W);
 	  }
 	  break;
-	case OP_EIGENVECTORS:
-	case OP_EIGENVALUES:
-#ifdef HAVE_EIGEN
-	  UERR << "Scalar argument.  No eigen ops posible." << endl;
-	  RANK_ERROR;
-#else
-	  UERR << "Eigen operations not supported" << endl;
+	default:
 	  DOMAIN_ERROR;
-#endif
 	  break;
 	}
       }
@@ -378,6 +392,58 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 1:		// vector --only count == 1 vectors will work for det
       {
 	switch(op) {
+	case OP_ROTATION_MATRIX:
+	  {
+	    if (count == 3) {
+	      Shape shape_Z;
+	      shape_Z.add_shape_item(9);
+	      rc = Value_P (shape_Z, LOC);
+	      vector<complex<double>> angs (3);
+	      for (int i = 0; i < 3; i++) {
+		const Cell & Bv = B->get_cravel (i);
+		angs[i] =
+		  complex<double>(Bv.get_real_value (),
+				  Bv.is_complex_cell () ?
+				  Bv.get_imag_value () : 0.0);
+	      }
+	      complex<double>cosa = cos (angs[0]);
+	      complex<double>sina = sin (angs[0]);
+	      complex<double>cosb = cos (angs[1]);
+	      complex<double>sinb = sin (angs[1]);
+	      complex<double>cosg = cos (angs[2]);
+	      complex<double>sing = sin (angs[2]);
+
+	      complex<double>t00 = cosa * cosb;
+	      complex<double>t01 = cosa * sinb * sing - sina * cosg;;
+	      complex<double>t02 = cosa * sinb * cosg + sina * sing;;
+	      
+	      complex<double>t10 = sina * cosb;
+	      complex<double>t11 = sina * sinb * sing + cosa * cosg;;
+	      complex<double>t12 = sina * sinb * cosg - cosa * sing;;
+	      
+	      complex<double>t20 = -sinb;
+	      complex<double>t21 =  sina * cosb;
+	      complex<double>t22 =  cosa * cosb;
+
+	      (*rc).set_ravel_Complex (0,  t00.real (),  t00.imag ());
+	      (*rc).set_ravel_Complex (1,  t01.real (),  t01.imag ());
+	      (*rc).set_ravel_Complex (2,  t02.real (),  t02.imag ());
+	      (*rc).set_ravel_Complex (3,  t10.real (),  t10.imag ());
+	      (*rc).set_ravel_Complex (4,  t11.real (),  t11.imag ());
+	      (*rc).set_ravel_Complex (5,  t12.real (),  t12.imag ());
+	      (*rc).set_ravel_Complex (6,  t20.real (),  t20.imag ());
+	      (*rc).set_ravel_Complex (7,  t21.real (),  t21.imag ());
+	      (*rc).set_ravel_Complex (8,  t22.real (),  t22.imag ());
+	      rc->check_value(LOC);
+	      Shape shape_W;
+	      shape_W.add_shape_item (3);
+	      shape_W.add_shape_item (3);
+	      (*rc).set_shape (shape_W);
+	    }
+	    else
+	      RANK_ERROR;
+	  }
+	  break;
 	case OP_DETERMINANT:
 	  if (B->is_empty ()) {
 	    LENGTH_ERROR;
@@ -400,22 +466,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    }
 	  }
 	  break;
-	case OP_CROSS_PRODUCT:
-	  UERR << "Vector argument.  No cross product posible." << endl;
+	default:
 	  RANK_ERROR;
-	  break;
-	case OP_IDENT:
-	  RANK_ERROR;
-	  break;
-	case OP_EIGENVECTORS:
-	case OP_EIGENVALUES:
-#ifdef HAVE_EIGEN
-	  UERR << "Vector argument.  No eigen ops posible." << endl;
-	  RANK_ERROR;
-#else
-	  UERR << "Eigen operations not supported" << endl;
-	  DOMAIN_ERROR;
-#endif
 	  break;
 	}
       }
@@ -547,18 +599,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	delete mtx;
       }
       break;
-    case OP_EIGENVECTORS:
-    case OP_EIGENVALUES:
-#ifdef HAVE_EIGEN
-      UERR << "Scalar argument.  No eigen ops posible." << endl;
-      RANK_ERROR;
-#else
-      UERR << "Eigen operations not supported" << endl;
-      DOMAIN_ERROR;
-#endif
-      break;
     default:		// can't deal with it
-      UERR << "Invalid rank.." << endl;
       RANK_ERROR;
       break;
     }
