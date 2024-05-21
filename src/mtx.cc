@@ -39,16 +39,12 @@
 #include<fstream>
 #include<string>
 
-#include <dlfcn.h>
-
-#ifdef HAVE_EIGEN
-#include <eigen3/Eigen/Dense>
-#endif
-
 #include "Native_interface.hh"
 #include "APL_types.hh"
 #include "Shape.hh"
 #include "Value.hh"
+
+#include "eigens.hh"
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
@@ -60,74 +56,6 @@ class NativeFunction;
 
 extern "C" void * get_function_mux(const char * function_name);
 
-class Matrix
-{
-public:
-  Matrix (int r, int c);
-  ~Matrix ();
-  complex<double> val (int r, int c);
-  void val (int r, int c, complex<double> v);
-  int  rows ();
-  int  cols ();
-  void show ();   
-  
-private:
-  int krows;
-  int kcols;
-  vector<complex<double>> *vals;
-};
-
-Matrix::Matrix (int r, int c)
-{
-  krows = r;
-  kcols = c;
-  vals = new vector<complex<double>>(r * c);
-}
-
-Matrix::~Matrix ()
-{
-  delete vals;
-}
-
-complex<double>
-Matrix::val (int r, int c)
-{
-  complex<double>rc (0.0, 0.0);
-  rc = (*vals)[c + r * kcols];
-  return rc;
-}
-
-void
-Matrix::val (int r, int c, complex<double> v)
-{
-  (*vals)[c + r * kcols] = v;
-}
-
-int
-Matrix::rows ()
-{
-  return krows;
-}
-
-int
-Matrix::cols ()
-{
-  return kcols;
-}
-
-void
-Matrix::show ()
-{
-  for (int r = 0; r < krows; r++) {
-    for (int c = 0; c < kcols; c++) {
-      fprintf (stderr, "%gj%g ",
-	       this->val (r, c).real (),
-	       this->val (r, c).imag ());
-    }
-    fprintf (stderr, "\n");
-  }
-}
-
 enum {
   OP_UNKNOWN,
   OP_DETERMINANT,
@@ -136,7 +64,8 @@ enum {
   OP_EIGENVECTORS,
   OP_EIGENVALUES,
   OP_IDENT,
-  OP_ROTATION_MATRIX
+  OP_ROTATION_MATRIX,
+  OP_NORM
 };
 
 static bool
@@ -198,50 +127,6 @@ genCofactor (Matrix *mtx, int r, int c)
   return cf;
 }
 
-#ifdef HAVE_EIGEN
-static Matrix
-getEigenvectors (Matrix *mtx)
-{
-  Matrix res (mtx->rows (), mtx->cols ());
-  Eigen::MatrixXcd mtxE (mtx->rows (), mtx->cols ());
-  for (int j = 0; j < mtx->rows (); j++) {
-    for (int k = 0; k < mtx->cols (); k++) {
-      mtxE (j, k) = mtx->val (j, k);
-    }
-  }
-
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE);
-
-  for (int l = 0; l < mtx->cols (); l++) {
-    for (int m = 0; m < mtx->rows (); m++) {
-      res.val (l, m, (ces.eigenvectors ().col (l))(m));
-    }
-  }
-  return res;
-}
-#endif
-
-#ifdef HAVE_EIGEN
-static vector<complex<double>>
-getEigenvalues (Matrix *mtx)
-{
-  vector<complex<double>> res (mtx->cols ());
-  Eigen::MatrixXcd mtxE (mtx->rows (), mtx->cols ());
-  for (int j = 0; j < mtx->rows (); j++) {
-    for (int k = 0; k < mtx->cols (); k++) {
-      mtxE (j, k) = mtx->val (j, k);
-    }
-  }
-
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces(mtxE, false);
-
-  for (int l = 0; l < mtx->rows (); l++)
-    res[l] = ces.eigenvalues ()(l);
-
-  return res;
-}
-#endif
-
 static complex<double>
 getDet (Matrix *mtx)
 {	
@@ -291,11 +176,6 @@ getCross (Matrix *mtx)
 static Token
 eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 {
-  /***
-      det n x n
-      cp  n x n+1
-   ***/
-
   Value_P rc = Str0(LOC);
   
   int op = OP_UNKNOWN;
@@ -312,6 +192,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 'I': op = OP_IDENT; break;
     case 'r':
     case 'R': op = OP_ROTATION_MATRIX; break;
+    case 'n':
+    case 'N': op = OP_NORM; break;
     }
     if (op == OP_UNKNOWN) {
       if (!strcasecmp (which.c_str (), "eigenvector"))
@@ -335,6 +217,10 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 0:		// scalar
       {
 	switch(op) {
+	case OP_NORM:
+	  rc = B;
+	  rc->check_value(LOC);
+	  break;
 	case OP_ROTATION_MATRIX:
 	  {
 	    Shape shape_Z;
@@ -357,10 +243,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    shape_W.add_shape_item (2);
 	    (*rc).set_shape (shape_W);
 	  }
-	  break;
-	case OP_CROSS_PRODUCT:
-	  UERR << "Scalar argument.  No cross product posible." << endl;
-	  RANK_ERROR;
 	  break;
 	case OP_IDENT:
 	  {
@@ -392,6 +274,35 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 1:		// vector --only count == 1 vectors will work for det
       {
 	switch(op) {
+	case OP_NORM:
+	  {
+	    complex<double> sum (0.0, 0.0);;
+	    for (int i = 0; i < count; i++) {
+	      const Cell & Bv = B->get_cravel (i);
+	      complex<double> val =
+		complex<double>(Bv.get_real_value (),
+				Bv.is_complex_cell () ?
+				Bv.get_imag_value () : 0.0);
+	      sum += val * val;
+	    }
+	    sum = sqrt (sum);
+
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(count);
+	    rc = Value_P (shape_Z, LOC);
+
+	    for (int i = 0; i < count; i++) {
+	      const Cell & Bv = B->get_cravel (i);
+	      complex<double> val =
+		complex<double>(Bv.get_real_value (),
+				Bv.is_complex_cell () ?
+				Bv.get_imag_value () : 0.0);
+	      val /= sum;
+	      (*rc).set_ravel_Complex (i, val.real (), val.imag ());
+	    }
+	    rc->check_value(LOC);
+	  }
+	  break;
 	case OP_ROTATION_MATRIX:
 	  {
 	    if (count == 3) {
@@ -485,6 +396,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	switch(op) {
 	case OP_DETERMINANT:
 	  rc = B;
+	  rc->check_value(LOC);
 	  break;
 	case OP_CROSS_PRODUCT:
 	  rows++;

@@ -1,7 +1,7 @@
 
 lib_LTLIBRARIES = libmtx.la
 
-libmtx_la_SOURCES = mtx.cc
+libmtx_la_SOURCES = mtx.cc eigens.cc Matrix.cc
 libmtx_la_CPPFLAGS = -I$(APL_SOURCES) -I$(APL_SOURCES)/src $(GSL_CFLAGS)
 
 noinst_LTLIBRARIES =
