@@ -37,6 +37,7 @@ where <em>string</em> is one of:
 <li><em>c</em> -- cross<li>
 <li><em>a</em> -- angle<li>
 <li><em>r</em> -- rotation<li>
+<li><em>g</em> -- gaussiab<li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -53,6 +54,7 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>crossm ← {mtx['c'] ⍵}</li>
 <li>angle  ← {⍺ mtx['a'] ⍵}</li>
 <li>rotate ← {⍺ mtx['r'] ⍵}</li>
+<li>grand  ← {mtx['g'] ⍵}</li>
 </ul>
 
 ## Details
@@ -81,6 +83,17 @@ and 0.0j0.0 elsewhere.
 If the argument is a scaler, the function returns a 2 × 2 2D rotation
 transformation matrix.  If the argument is a ⍴3 vector, the function returns
 a 3 × 3  rotation transformation matrix.
+
+#### Gaussian
+
+Gaussian returns normally distributed (i.e., gaussian) complex random numbers
+of mean 0.0j0.0 and a standard deviation of the right argument.  I.e., repeated 
+instances of  **mtx['g'] 2.0** would return normally distributed random
+numbers.  If the argument is complex, the result will also be complex.  The
+result will be of the same shape of the argument, e.g., **mtx['g'] 2 3 4**
+will retirn a ⍴ 3 vector of randoms with standard veviations of 2.0, 3.0, and
+4.0.  All results are of mean 0.0j0.0 but can be adjusted by addition,
+subtraction, or whatever.
 
 ### Dyadic
 
