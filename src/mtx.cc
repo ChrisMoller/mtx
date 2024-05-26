@@ -24,6 +24,8 @@
 
 #include "../mtx_config.h"
 
+#include <stdio.h>
+
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
@@ -35,6 +37,7 @@
 
 #include<cmath>
 #include<complex>
+#include <random>
 #include<iostream>
 #include<fstream>
 #include<string>
@@ -65,7 +68,8 @@ enum {
   OP_EIGENVALUES,
   OP_IDENT,
   OP_ROTATION_MATRIX,
-  OP_NORM
+  OP_NORM,
+  OP_GAUSSIAN
 };
 
 static bool
@@ -74,9 +78,22 @@ close_fun(Cause cause, const NativeFunction * caller)
    return true;
 }
 
-// prevent compiler warning
 bool (*close_fun_is_unused)(Cause, const NativeFunction *) = &close_fun;
 
+static complex<double>
+genRand (double rsdev, double isdev)
+{
+  random_device rrd{};
+  random_device ird{};
+  mt19937 rgen{rrd()};
+  mt19937 igen{ird()};
+  normal_distribution rd{0.0, rsdev};
+  normal_distribution id{0.0, isdev};
+
+  complex<double> rc = complex (rd (rgen), id (igen));
+  
+  return rc;
+}
 
 Fun_signature
 get_signature()
@@ -171,12 +188,70 @@ getCross (Matrix *mtx)
   }
 
   return rc;
-}  
+}
+
+//https://misc.flogisoft.com/bash/tip_colors_and_formatting
+
+static inline void
+showHelpLine (const char first, const char * rest)
+{
+  char *str;
+  if (first == 0)
+    asprintf (&str, "\t\e[4m%s\e[0m", rest);
+  else
+    asprintf (&str, "\t\e[4m%c\e[0m%s", first, rest);
+  cout << str << endl;
+  free (str);
+}
+
+static Value_P
+genRands (Value_P B)
+{
+  const ShapeItem count   = B->element_count();
+  Shape shape_Z;
+  shape_Z.add_shape_item(count);
+  Value_P rc = Value_P (shape_Z, LOC);
+
+  for (int i = 0; i < count; i++) {
+    const Cell & Bv = B->get_cravel (i);
+    APL_Float xvr = Bv.get_real_value ();
+    APL_Float xvi = Bv.is_complex_cell ()
+      ? Bv.get_imag_value () : 0.0;
+    complex<double> val = genRand (xvr, xvi);
+    (*rc).set_ravel_Complex (i, val.real (), val.imag ());
+  }
+  rc->check_value(LOC);
+  
+  const auto rank = B->get_rank();
+  Shape shape_W;
+  if (rank > 1) {
+    for (sAxis r = 0; r < rank; r++) {
+      ShapeItem s = B->get_shape_item (r);
+      shape_W.add_shape_item (s);
+    }
+    (*rc).set_shape (shape_W);
+  }
+  
+  return rc;
+}
 
 static Token
 eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 {
   Value_P rc = Str0(LOC);
+  
+  if (B->is_char_string ()) {
+    cout << "\n\tgeneral form: mtx['\e[3mindex\e[0m']\n\n";
+    cout << "\tvalid '\e[3mindex\e[0m' values: (underscored minimal)\n\n";
+    showHelpLine ('d', "eterminant");
+    showHelpLine ('c', "ross_product");
+    showHelpLine ('i', "ident");
+    showHelpLine ('r', "otation");
+    showHelpLine ('n', "orm");
+    showHelpLine (0, "eigenvector");
+    showHelpLine (0, "eigenvalue");
+    return Token(TOK_APL_VALUE1, rc);
+  }
   
   int op = OP_UNKNOWN;
   
@@ -194,6 +269,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 'R': op = OP_ROTATION_MATRIX; break;
     case 'n':
     case 'N': op = OP_NORM; break;
+    case 'g':
+    case 'G': op = OP_GAUSSIAN; break;
     }
     if (op == OP_UNKNOWN) {
       if (!strcasecmp (which.c_str (), "eigenvector"))
@@ -217,6 +294,18 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 0:		// scalar
       {
 	switch(op) {
+	case OP_GAUSSIAN:
+	  {
+	    const Cell & Bv = B->get_cravel (0);
+	    APL_Float xvr = Bv.get_real_value ();
+	    APL_Float xvi = Bv.is_complex_cell ()
+	      ? Bv.get_imag_value () : 0.0;
+	    complex<double> val = genRand (xvr, xvi);
+	    rc = (xvi == 0.0) ?
+	      FloatScalar (val.real (), LOC) :
+	      ComplexScalar (val.real (), val.imag (), LOC);
+	  }	
+	  break;
 	case OP_NORM:
 	  rc = B;
 	  rc->check_value(LOC);
@@ -274,6 +363,9 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 1:		// vector --only count == 1 vectors will work for det
       {
 	switch(op) {
+	case OP_GAUSSIAN:
+	  rc = genRands (B);
+	  break;
 	case OP_NORM:
 	  {
 	    complex<double> sum (0.0, 0.0);;
@@ -394,6 +486,11 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	ShapeItem cols = B->get_shape_item(1);
 
 	switch(op) {
+	case OP_NORM:			// fixme--use axis
+	  break;
+	case OP_GAUSSIAN:
+	  rc = genRands (B);
+	  break;
 	case OP_DETERMINANT:
 	  rc = B;
 	  rc->check_value(LOC);
@@ -667,8 +764,6 @@ eval_AB(Value_P A, Value_P B, const NativeFunction * caller)
   Value_P X = IntScalar (OP_DETERMINANT, LOC);	// default to determinant
   return eval_AXB (A, X, B, caller);
 }
-
-
 
 void *
 get_function_mux(const char * function_name)
