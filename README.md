@@ -9,6 +9,7 @@ including support for:
 <li>Vector cross products</li>
 <li>Vector interior angles</li>
 <li>Vector or scalar rotation matrix</li>
+<li>Gaussian complex random values</li>
 </ul>
 
 ## Installation

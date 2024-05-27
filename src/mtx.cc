@@ -510,7 +510,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	
 	Matrix *mtx = new Matrix (rows, cols);
 
-	{
+	if (op != OP_GAUSSIAN) {
 	  int p = 0;
 
 	  loop (r, rows) {
@@ -529,6 +529,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	}
 
 	switch(op) {
+	case OP_GAUSSIAN:	// do nothing
+	  break;
 	case OP_IDENT:
 	  RANK_ERROR;
 	  break;
@@ -609,7 +611,10 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
       }
       break;
     default:		// can't deal with it
-      RANK_ERROR;
+      if (op == OP_GAUSSIAN)
+	rc = genRands (B);
+      else
+	RANK_ERROR;
       break;
     }
   }
