@@ -31,15 +31,15 @@ or dyadic:
 
 where <em>string</em> is one of:
 <ul>
-<li><em>d</em> -- determinant<li>
-<li><em>eigenvalue</em><li>
-<li><em>eigenvector</em><li>
-<li><em>i</em> -- identity<li>
-<li><em>c</em> -- cross<li>
-<li><em>a</em> -- angle<li>
-<li><em>r</em> -- rotation<li>
-<li><em>g</em> -- gaussian<li>
-<li><em>p</em> -- print<li>
+<li><em>d</em> -- determinant</li>
+<li><em>eigenvalue</em></li>
+<li><em>eigenvector</em></li>
+<li><em>i</em> -- identity</li>
+<li><em>c</em> -- cross</li>
+<li><em>a</em> -- angle</li>
+<li><em>r</em> -- rotation</li>
+<li><em>g</em> -- gaussian</li>
+<li><em>p</em> -- print</li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
