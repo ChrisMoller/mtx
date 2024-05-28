@@ -101,9 +101,11 @@ subtraction, or whatever.
 The result of creating a matrix 500 x 2 matrix of normally distributed points
 with a standard deviation of 5.0 horizontally and 2.0 vertically:
 
-**(mtx['g'] (500 2⍴5.0 2.0)) mtx['p] 's500.data'**
+**(mtx['g'] (500 2⍴5.0 2.0)) mtx['p'] 's500.data'**
 
 ![A scatterplot of normally distributed points in 2-space](s500.jpg "Normal distribution")
+
+(See Pretty-print (**mtx['p]**) below.)
 
 
 ### Dyadic
@@ -120,6 +122,8 @@ a non-zero imaginary component...)
 Pretty-prints matrices:
 
 >*matrix* mtx['p'] '*filename*'
+
+Actually, the "matrix" argument may be of any shape.
 
 ### Ambivalent
 
