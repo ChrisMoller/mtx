@@ -38,7 +38,8 @@ where <em>string</em> is one of:
 <li><em>c</em> -- cross<li>
 <li><em>a</em> -- angle<li>
 <li><em>r</em> -- rotation<li>
-<li><em>g</em> -- gaussiab<li>
+<li><em>g</em> -- gaussian<li>
+<li><em>p</em> -- print<li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -56,6 +57,7 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>angle  ← {⍺ mtx['a'] ⍵}</li>
 <li>rotate ← {⍺ mtx['r'] ⍵}</li>
 <li>grand  ← {mtx['g'] ⍵}</li>
+<li>print  ← {⍺ mtx['p'] ⍵}</li>
 </ul>
 
 ## Details
@@ -105,6 +107,12 @@ length.  The function returns a complex scalar value representing the angle
 between the vectors.  (Frankly, I have no idea what it means if the result has
 a non-zero imaginary component...)
 
+#### Print
+
+Pretty-prints matrices:
+
+>*matrix* mtx['p'] '*filename*'
+
 ### Ambivalent
 
 #### Cross product
@@ -120,7 +128,11 @@ For reasons I'm not enough of a mathematician to understand, cross products
 are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
-it may mean.  
+it may mean.
+
+### Example using normal distribution and matrix printing:
+
+![A scatterplot of normally distributed points in 2-space](s500.jpg "Normal distribution")
 
 I may add more functionality in later releases.  I'm open to suggestions.
 

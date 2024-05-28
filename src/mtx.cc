@@ -506,7 +506,9 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    RANK_ERROR;
 	  }
 	}
-	if (op != OP_CROSS_PRODUCT && rows != cols) {
+	if (op != OP_CROSS_PRODUCT &&
+	    op != OP_GAUSSIAN &&
+	    rows != cols) {
 	  UERR << "Not a square matrix." << endl;
 	  RANK_ERROR;
 	}
@@ -680,18 +682,25 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	B->is_char_string ()) {
       const ShapeItem A_count   = A->element_count();
       const auto      A_rank    = A->get_rank();
+      const UCS_string  ustr = B->get_UCS_ravel();
+      UTF8_string fn (ustr);
+      FILE *ofile = fopen (fn.c_str (), "w");
+      if (!ofile) {
+	UERR << "Open failure on " << ustr << endl;
+	DOMAIN_ERROR;
+      }
       if (A_rank <= 1) {
 	for (int i = 0; i < A_count; i++) {
 	  const Cell & Av = A->get_cravel (i);
 	  APL_Float Avr = Av.get_real_value ();
 	  if (Av.is_complex_cell ()) {
 	    APL_Float Avi = Av.get_imag_value ();
-	    fprintf (stderr, "%gj%g ", Avr, Avi);
+	    fprintf (ofile, "%gj%g ", Avr, Avi);
 	  }
 	  else
-	    fprintf (stderr, "%g", Avr);
+	    fprintf (ofile, "%g", Avr);
 	}
-	fprintf (stderr, "\n");
+	fprintf (ofile, "\n");
       }
       else {
 	int end_line = (int)(A->get_shape_item (A_rank-1));
@@ -707,7 +716,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	  if (Av.is_complex_cell ()) {
 	    APL_Float Avi = Av.get_imag_value ();
 	    len = snprintf (str, STR_LEN, "%gj%g", Avr, Avi);
-	    is_cpx = true;
+	    if (Avi != 0.0) is_cpx = true;
 	  }
 	  else
 	    len = snprintf (str, STR_LEN, "%g", Avr);
@@ -718,10 +727,10 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	for (int i = 0; i < A_count; i++) {
 	  if (A_rank > 2) {
 	    if (0 == i%end_grid) {
-	      fprintf (stdout, "\n[");
+	      fprintf (ofile, "\n[");
 	      for (int j = 0; j < A_rank - 2; j++)
-		fprintf (stdout, "%d ", rho[j]);
-	      fprintf (stdout, "* *]:\n");
+		fprintf (ofile, "%d ", rho[j]);
+	      fprintf (ofile, "* *]:\n");
 	      bool carry = 1;
 	      for (int j = A_rank - 3; j >= 0; j--) {
 		rho[j] += carry;
@@ -737,18 +746,18 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	  const Cell & Av = A->get_cravel (i);
 	  APL_Float Avr = Av.get_real_value ();
 	  char str[STR_LEN];
-	  if (Av.is_complex_cell ()) {
+	  if (is_cpx && Av.is_complex_cell ()) {
 	    APL_Float Avi = Av.get_imag_value ();
 	    snprintf (str, STR_LEN, "%gj%g", Avr, Avi);
 	  }
 	  else
 	    snprintf (str, STR_LEN, "%g", Avr);
-	  fprintf (stdout, "%*s ", max_len, str);
-	  if (0 == (i+1)%end_line) fprintf (stdout, "\n");
+	  fprintf (ofile, "%*s ", max_len, str);
+	  if (0 == (i+1)%end_line) fprintf (ofile, "\n");
 	}
       }
 
-  
+      fclose (ofile);
       return Token(TOK_APL_VALUE1, rc);
     }
     else {
