@@ -36,6 +36,7 @@
 #undef VERSION
 
 #include<alloca.h>
+#include<strings.h>
 #include<cmath>
 #include<complex>
 #include <random>
@@ -693,9 +694,8 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	fprintf (stderr, "\n");
       }
       else {
-	int end_line = (int)(A->get_shape_item ((sAxis)(A_rank-1)));
-	int end_grid = end_line * (int)(A->get_shape_item ((sAxis)(A_rank-2)));
-	fprintf (stderr, "el = %d, eg = %d\n", end_line, end_grid);
+	int end_line = (int)(A->get_shape_item (A_rank-1));
+	int end_grid = end_line * (int)(A->get_shape_item (A_rank-2));
 #define STR_LEN 256
 	char str[STR_LEN];
 	bool is_cpx = false;
@@ -713,8 +713,27 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	    len = snprintf (str, STR_LEN, "%g", Avr);
 	  if (max_len < len) max_len = len;
 	}
-	char *ostr = (char *)alloca (max_len + 16);
+	int *rho = (int *)alloca (A_rank * sizeof(int));
+	bzero (rho, A_rank * sizeof(int));
 	for (int i = 0; i < A_count; i++) {
+	  if (A_rank > 2) {
+	    if (0 == i%end_grid) {
+	      fprintf (stdout, "\n[");
+	      for (int j = 0; j < A_rank - 2; j++)
+		fprintf (stdout, "%d ", rho[j]);
+	      fprintf (stdout, "* *]:\n");
+	      bool carry = 1;
+	      for (int j = A_rank - 3; j >= 0; j--) {
+		rho[j] += carry;
+		if (rho[j] >= A->get_shape_item (j)) {
+		  rho[j] = 0;
+		  carry = 1;
+		}
+		else
+		  carry = 0;
+	      }
+	    }
+	  }
 	  const Cell & Av = A->get_cravel (i);
 	  APL_Float Avr = Av.get_real_value ();
 	  char str[STR_LEN];
@@ -724,7 +743,8 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	  }
 	  else
 	    snprintf (str, STR_LEN, "%g", Avr);
-	  fprintf (stdout, "'%*s'\n", max_len, str);
+	  fprintf (stdout, "%*s ", max_len, str);
+	  if (0 == (i+1)%end_line) fprintf (stdout, "\n");
 	}
       }
 
