@@ -70,6 +70,7 @@ enum {
   OP_EIGENVALUES,
   OP_IDENT,
   OP_ROTATION_MATRIX,
+  OP_HOMOGENEOUS_MATRIX,
   OP_NORM,
   OP_GAUSSIAN,
   OP_PRINT
@@ -238,6 +239,90 @@ genRands (Value_P B)
   return rc;
 }
 
+static Value_P
+genRotation (int tp, Value_P A, Value_P B)
+{
+  Value_P rc;
+  Shape shape_Z;
+  int sdim = (tp == 9) ? 3 : 4;
+  shape_Z.add_shape_item(tp);
+  rc = Value_P (shape_Z, LOC);
+  vector<complex<double>> angs (3);
+  for (int i = 0; i < 3; i++) {
+    const Cell & Bv = B->get_cravel (i);
+    angs[i] =
+      complex<double>(Bv.get_real_value (),
+		      Bv.is_complex_cell () ?
+		      Bv.get_imag_value () : 0.0);
+  }
+  complex<double>cosa = cos (angs[0]);
+  complex<double>sina = sin (angs[0]);
+  complex<double>cosb = cos (angs[1]);
+  complex<double>sinb = sin (angs[1]);
+  complex<double>cosg = cos (angs[2]);
+  complex<double>sing = sin (angs[2]);
+
+  complex<double>t00 = cosa * cosb;
+  complex<double>t01 = cosa * sinb * sing - sina * cosg;;
+  complex<double>t02 = cosa * sinb * cosg + sina * sing;;
+	      
+  complex<double>t10 = sina * cosb;
+  complex<double>t11 = sina * sinb * sing + cosa * cosg;;
+  complex<double>t12 = sina * sinb * cosg - cosa * sing;;
+	      
+  complex<double>t20 = -sinb;
+  complex<double>t21 =  cosb * sing;
+  complex<double>t22 =  cosb * cosg;
+
+  if (tp == 9) {
+    (*rc).set_ravel_Complex (0,  t00.real (),  t00.imag ());
+    (*rc).set_ravel_Complex (1,  t01.real (),  t01.imag ());
+    (*rc).set_ravel_Complex (2,  t02.real (),  t02.imag ());
+    (*rc).set_ravel_Complex (3,  t10.real (),  t10.imag ());
+    (*rc).set_ravel_Complex (4,  t11.real (),  t11.imag ());
+    (*rc).set_ravel_Complex (5,  t12.real (),  t12.imag ());
+    (*rc).set_ravel_Complex (6,  t20.real (),  t20.imag ());
+    (*rc).set_ravel_Complex (7,  t21.real (),  t21.imag ());
+    (*rc).set_ravel_Complex (8,  t22.real (),  t22.imag ());
+  }
+  else {
+    vector<complex<double>> trans (3);
+    for (int i = 0; i < 3; i++) {
+      const Cell & Av = A->get_cravel (i);
+      trans[i] =
+	complex<double>(Av.get_real_value (),
+			Av.is_complex_cell () ?
+			Av.get_imag_value () : 0.0);
+    }
+    (*rc).set_ravel_Complex (0,   t00.real (),  t00.imag ());
+    (*rc).set_ravel_Complex (1,   t01.real (),  t01.imag ());
+    (*rc).set_ravel_Complex (2,   t02.real (),  t02.imag ());
+    (*rc).set_ravel_Complex (3,   0.0, 0.0);
+    
+    (*rc).set_ravel_Complex (4,   t10.real (),  t10.imag ());
+    (*rc).set_ravel_Complex (5,   t11.real (),  t11.imag ());
+    (*rc).set_ravel_Complex (6,   t12.real (),  t12.imag ());
+    (*rc).set_ravel_Complex (7,   0.0, 0.0);
+    
+    (*rc).set_ravel_Complex (8,   t20.real (),  t20.imag ());
+    (*rc).set_ravel_Complex (9,   t21.real (),  t21.imag ());
+    (*rc).set_ravel_Complex (10,  t22.real (),  t22.imag ());
+    (*rc).set_ravel_Complex (11,  0.0, 0.0);
+    
+    (*rc).set_ravel_Complex (12,  trans[0].real (), trans[0].imag ());
+    (*rc).set_ravel_Complex (13,  trans[1].real (), trans[1].imag ());
+    (*rc).set_ravel_Complex (14,  trans[2].real (), trans[2].imag ());
+    (*rc).set_ravel_Complex (15,  1.0, 0.0);
+  }
+  
+  rc->check_value(LOC);
+  Shape shape_W;
+  shape_W.add_shape_item (sdim);
+  shape_W.add_shape_item (sdim);
+  (*rc).set_shape (shape_W);
+  return rc;
+}
+
 static Token
 eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 {
@@ -400,52 +485,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  break;
 	case OP_ROTATION_MATRIX:
 	  {
-	    if (count == 3) {
-	      Shape shape_Z;
-	      shape_Z.add_shape_item(9);
-	      rc = Value_P (shape_Z, LOC);
-	      vector<complex<double>> angs (3);
-	      for (int i = 0; i < 3; i++) {
-		const Cell & Bv = B->get_cravel (i);
-		angs[i] =
-		  complex<double>(Bv.get_real_value (),
-				  Bv.is_complex_cell () ?
-				  Bv.get_imag_value () : 0.0);
-	      }
-	      complex<double>cosa = cos (angs[0]);
-	      complex<double>sina = sin (angs[0]);
-	      complex<double>cosb = cos (angs[1]);
-	      complex<double>sinb = sin (angs[1]);
-	      complex<double>cosg = cos (angs[2]);
-	      complex<double>sing = sin (angs[2]);
-
-	      complex<double>t00 = cosa * cosb;
-	      complex<double>t01 = cosa * sinb * sing - sina * cosg;;
-	      complex<double>t02 = cosa * sinb * cosg + sina * sing;;
-	      
-	      complex<double>t10 = sina * cosb;
-	      complex<double>t11 = sina * sinb * sing + cosa * cosg;;
-	      complex<double>t12 = sina * sinb * cosg - cosa * sing;;
-	      
-	      complex<double>t20 = -sinb;
-	      complex<double>t21 =  cosb * sing;
-	      complex<double>t22 =  cosb * cosg;
-
-	      (*rc).set_ravel_Complex (0,  t00.real (),  t00.imag ());
-	      (*rc).set_ravel_Complex (1,  t01.real (),  t01.imag ());
-	      (*rc).set_ravel_Complex (2,  t02.real (),  t02.imag ());
-	      (*rc).set_ravel_Complex (3,  t10.real (),  t10.imag ());
-	      (*rc).set_ravel_Complex (4,  t11.real (),  t11.imag ());
-	      (*rc).set_ravel_Complex (5,  t12.real (),  t12.imag ());
-	      (*rc).set_ravel_Complex (6,  t20.real (),  t20.imag ());
-	      (*rc).set_ravel_Complex (7,  t21.real (),  t21.imag ());
-	      (*rc).set_ravel_Complex (8,  t22.real (),  t22.imag ());
-	      rc->check_value(LOC);
-	      Shape shape_W;
-	      shape_W.add_shape_item (3);
-	      shape_W.add_shape_item (3);
-	      (*rc).set_shape (shape_W);
-	    }
+	    if (count == 3)
+	      rc = genRotation (9, nullptr, B);
 	    else
 	      RANK_ERROR;
 	  }
@@ -664,6 +705,8 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     case 'C': op = OP_CROSS_PRODUCT; break;
     case 'p':
     case 'P': op = OP_PRINT; break;
+    case 'h':
+    case 'H': op = OP_HOMOGENEOUS_MATRIX; break;
     }
     if (op == OP_UNKNOWN) {
       SYNTAX_ERROR;
@@ -765,7 +808,6 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       DOMAIN_ERROR;
     }
   }
-    fprintf (stderr, "%d\n", __LINE__);
 
   if ((A_celltype & CT_NUMERIC) &&
       (B_celltype & CT_NUMERIC)) {
@@ -781,6 +823,14 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   const auto      B_rank    = B->get_rank();
 
   switch(op) {
+  case OP_HOMOGENEOUS_MATRIX:
+    {
+      if (A_count == 3 && B_count == 3) 
+	rc = genRotation (16, A, B);
+      else
+	RANK_ERROR;
+    }
+    break;
   case OP_CROSS_PRODUCT:
     if (A_rank == 1 && B_rank == 1 && A_count == B_count && A_count == 3) {
       Matrix *mtx = new Matrix (3, 3);
