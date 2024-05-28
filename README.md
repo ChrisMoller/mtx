@@ -32,8 +32,8 @@ or dyadic:
 where <em>string</em> is one of:
 <ul>
 <li><em>d</em> -- determinant<li>
-<li><em>eigenvalue</em>
-<li><em>eigenvector</em>
+<li><em>eigenvalue</em><li>
+<li><em>eigenvector</em><li>
 <li><em>i</em> -- identity<li>
 <li><em>c</em> -- cross<li>
 <li><em>a</em> -- angle<li>
