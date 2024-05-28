@@ -98,6 +98,14 @@ will retirn a ⍴ 3 vector of randoms with standard veviations of 2.0, 3.0, and
 4.0.  All results are of mean 0.0j0.0 but can be adjusted by addition,
 subtraction, or whatever.
 
+The result of creating a matrix 500 x 2 matrix of normally distributed points
+with a standard deviation of 5.0 horizontally and 2.0 vertically:
+
+**(mtx['g'] (500 2⍴5.0 2.0)) mtx['p] 's500.data'**
+
+![A scatterplot of normally distributed points in 2-space](s500.jpg "Normal distribution")
+
+
 ### Dyadic
 
 #### Angle
@@ -129,10 +137,6 @@ are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.
-
-### Example using normal distribution and matrix printing:
-
-![A scatterplot of normally distributed points in 2-space](s500.jpg "Normal distribution")
 
 I may add more functionality in later releases.  I'm open to suggestions.
 
