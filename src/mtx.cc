@@ -35,6 +35,7 @@
 #undef PACKAGE_VERSION
 #undef VERSION
 
+#include<alloca.h>
 #include<cmath>
 #include<complex>
 #include <random>
@@ -69,7 +70,8 @@ enum {
   OP_IDENT,
   OP_ROTATION_MATRIX,
   OP_NORM,
-  OP_GAUSSIAN
+  OP_GAUSSIAN,
+  OP_PRINT
 };
 
 static bool
@@ -657,6 +659,8 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     case 'A': op = OP_VECTOR_ANGLE; break;
     case 'c':
     case 'C': op = OP_CROSS_PRODUCT; break;
+    case 'p':
+    case 'P': op = OP_PRINT; break;
     }
     if (op == OP_UNKNOWN) {
       SYNTAX_ERROR;
@@ -670,8 +674,72 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   const CellType A_celltype = A->deep_cell_types();
   const CellType B_celltype = B->deep_cell_types();
 
+  if (op == OP_PRINT) {
+    if ((A_celltype & CT_NUMERIC) &&
+	B->is_char_string ()) {
+      const ShapeItem A_count   = A->element_count();
+      const auto      A_rank    = A->get_rank();
+      if (A_rank <= 1) {
+	for (int i = 0; i < A_count; i++) {
+	  const Cell & Av = A->get_cravel (i);
+	  APL_Float Avr = Av.get_real_value ();
+	  if (Av.is_complex_cell ()) {
+	    APL_Float Avi = Av.get_imag_value ();
+	    fprintf (stderr, "%gj%g ", Avr, Avi);
+	  }
+	  else
+	    fprintf (stderr, "%g", Avr);
+	}
+	fprintf (stderr, "\n");
+      }
+      else {
+	int end_line = (int)(A->get_shape_item ((sAxis)(A_rank-1)));
+	int end_grid = end_line * (int)(A->get_shape_item ((sAxis)(A_rank-2)));
+	fprintf (stderr, "el = %d, eg = %d\n", end_line, end_grid);
+#define STR_LEN 256
+	char str[STR_LEN];
+	bool is_cpx = false;
+	int max_len = -1;
+	for (int i = 0; i < A_count; i++) {
+	  int len;
+	  const Cell & Av = A->get_cravel (i);
+	  APL_Float Avr = Av.get_real_value ();
+	  if (Av.is_complex_cell ()) {
+	    APL_Float Avi = Av.get_imag_value ();
+	    len = snprintf (str, STR_LEN, "%gj%g", Avr, Avi);
+	    is_cpx = true;
+	  }
+	  else
+	    len = snprintf (str, STR_LEN, "%g", Avr);
+	  if (max_len < len) max_len = len;
+	}
+	char *ostr = (char *)alloca (max_len + 16);
+	for (int i = 0; i < A_count; i++) {
+	  const Cell & Av = A->get_cravel (i);
+	  APL_Float Avr = Av.get_real_value ();
+	  char str[STR_LEN];
+	  if (Av.is_complex_cell ()) {
+	    APL_Float Avi = Av.get_imag_value ();
+	    snprintf (str, STR_LEN, "%gj%g", Avr, Avi);
+	  }
+	  else
+	    snprintf (str, STR_LEN, "%g", Avr);
+	  fprintf (stdout, "'%*s'\n", max_len, str);
+	}
+      }
+
+  
+      return Token(TOK_APL_VALUE1, rc);
+    }
+    else {
+      UERR << "Incompatible arguments.\n";
+      DOMAIN_ERROR;
+    }
+  }
+    fprintf (stderr, "%d\n", __LINE__);
+
   if ((A_celltype & CT_NUMERIC) &&
-      (A_celltype & CT_NUMERIC)) {
+      (B_celltype & CT_NUMERIC)) {
   }
   else {				// not numeric
     UERR << "Non-numeric argument." << endl;
