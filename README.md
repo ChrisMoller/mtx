@@ -40,6 +40,7 @@ where <em>string</em> is one of:
 <li><em>r</em> -- rotation</li>
 <li><em>g</em> -- gaussian</li>
 <li><em>p</em> -- print</li>
+<li><em>h</em> -- homogeneous</li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -58,6 +59,7 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>rotate ← {⍺ mtx['r'] ⍵}</li>
 <li>grand  ← {mtx['g'] ⍵}</li>
 <li>print  ← {⍺ mtx['p'] ⍵}</li>
+<li>homgeneous  ← {⍺ mtx['h'] ⍵}</li>
 </ul>
 
 ## Details
@@ -103,7 +105,13 @@ with a standard deviation of 5.0 horizontally and 2.0 vertically:
 
 **(mtx['g'] (500 2⍴5.0 2.0)) mtx['p'] 's500.data'**
 
-![A scatterplot of normally distributed points in 2-space](s500.jpg "Normal distribution")
+![A scatterplot of 500 normally distributed points in 2-space](s500.jpg
+ "Normal distribution")
+ 
+**(mtx['g'] (5000 2⍴5.0 2.0)) mtx['p'] 's5000.data'**
+
+![A scatterplot of 5000 normally distributed points in 2-space](s5000.jpg
+ "Normal distribution")
 
 (See Pretty-print (**mtx['p]**) below.)
 
@@ -124,6 +132,11 @@ Pretty-prints matrices:
 >*matrix* mtx['p'] '*filename*'
 
 Actually, the "matrix" argument may be of any shape.
+
+#### Homogeneous
+
+(tx ty tz) mtx['h'] rx ry rz returns a homogeneous matrix of the given
+translation and rotation .
 
 ### Ambivalent
 
