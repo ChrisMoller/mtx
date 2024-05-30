@@ -100,9 +100,6 @@ will retirn a ⍴ 3 vector of randoms with standard veviations of 2.0, 3.0, and
 4.0.  All results are of mean 0.0j0.0 but can be adjusted by addition,
 subtraction, or whatever.
 
-The result of creating a matrix 500 x 2 matrix of normally distributed points
-with a standard deviation of 5.0 horizontally and 2.0 vertically:
-
 **(mtx['g'] (500 2⍴5.0 2.0)) mtx['p'] 's500.data'**
 
 ![A scatterplot of 500 normally distributed points in 2-space](s500.jpg
