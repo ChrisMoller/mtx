@@ -86,8 +86,8 @@ and 0.0j0.0 elsewhere.
 #### Rotate
 
 If the argument is a scaler, the function returns a 2 × 2 2D rotation
-transformation matrix.  If the argument is a ⍴3 vector, the function returns
-a 3 × 3  rotation transformation matrix.
+transform matrix.  If the argument is a ⍴3 vector, the function returns
+a 3 × 3  rotation transform matrix.
 
 #### Gaussian
 
