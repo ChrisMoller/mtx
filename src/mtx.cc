@@ -121,7 +121,7 @@ eval_fill_AB(Value_P A, Value_P B, const NativeFunction * caller)
 }
 
 static Token
-eval_ident_Bx(Value_P B, sAxis x, const NativeFunction * caller)
+eval_ident_Bx(Value_P B, sAxis x)
 {
   fprintf (stderr, "eval_ident_B\n");
   return Token(TOK_APL_VALUE1, Str0(LOC));
@@ -216,13 +216,26 @@ genRands (Value_P B)
   shape_Z.add_shape_item(count);
   Value_P rc = Value_P (shape_Z, LOC);
 
+  bool is_cpx = false;
+  for (int i = 0; i < count; i++) {
+    const Cell & Bv = B->get_cravel (i);
+    if (Bv.is_complex_cell () &&
+	Bv.get_imag_value () != 0.0) {
+      is_cpx = true;
+      break;
+    }
+  }
+  
   for (int i = 0; i < count; i++) {
     const Cell & Bv = B->get_cravel (i);
     APL_Float xvr = Bv.get_real_value ();
     APL_Float xvi = Bv.is_complex_cell ()
       ? Bv.get_imag_value () : 0.0;
-    complex<double> val = genRand (xvr, xvi);
-    (*rc).set_ravel_Complex (i, val.real (), val.imag ());
+      complex<double> val = genRand (xvr, xvi);
+      if (is_cpx) 
+	(*rc).set_ravel_Complex (i, val.real (), val.imag ());
+      else
+	(*rc).set_ravel_Float (i, val.real ());
   }
   rc->check_value(LOC);
   
