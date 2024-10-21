@@ -351,6 +351,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     showHelpLine ('n', "orm");
     showHelpLine (0, "eigenvector");
     showHelpLine (0, "eigenvalue");
+    cout << "\n\tdefaults to determinant if the index is omitted.\n\n";
     return Token(TOK_APL_VALUE1, rc);
   }
   

@@ -93,7 +93,8 @@ a 3 × 3  rotation transform matrix.
 
 #### Normalise
 
-
+For vector or matrix arguments, returns a value of the same shape such that
++/,(norm ⍵)*2 = 1.  (Not valid for scalar arguments.)
 
 #### Gaussian
 
