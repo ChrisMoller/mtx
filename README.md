@@ -208,18 +208,36 @@ length.  The function returns a complex scalar value representing the angle
 between the vectors.  (Frankly, I have no idea what it means if the result has
 a non-zero imaginary component...)
 
+>r2d (1 0) angle (1 1)
+
+45.0
+
+>r2d (1 0 0) angle 1 1 1
+
+54.7
+
+
 #### Print
 
-Pretty-prints matrices to a file:
+Pretty-prints matrices to a file, converting all the APL ¯ "negative" symbols
+to standard minus signs:
 
->*matrix* mtx['p'] '*filename*'
+>*matrix* print '*filename*'
 
 Actually, the "matrix" argument may be of any shape.
 
 #### Homogeneous
 
-(tx ty tz) mtx['h'] rx ry rz returns a homogeneous matrix of the given
-translation and rotation .
+Returns a homogeneous matrix of the given translation and rotation.
+
+>1 2 3 homogeneous d2r 30 45 60
+
+<pre>
+ 0.612 0.28   0.739 0
+ 0.354 0.739 ¯0.573 0
+¯0.707 0.612  0.354 0
+ 1     2      3     1
+</pre>
 
 ### Ambivalent
 
@@ -237,6 +255,15 @@ are only valid in 3-space and 7-space, so the only valid arguments are of
 shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.
+
+>(1 2 3) cross 4 5 6
+
+¯3 6 ¯3
+
+>crossm (2 3⍴⍳6)
+
+¯3 6 ¯3
+
 
 I may add more functionality in later releases.  I'm open to suggestions.
 
