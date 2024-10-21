@@ -41,6 +41,7 @@ where <em>string</em> is one of:
 <li><em>g</em> -- gaussian</li>
 <li><em>p</em> -- print</li>
 <li><em>h</em> -- homogeneous</li>
+<li><em>h</em> -- normalise</li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -60,6 +61,7 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>grand  ← {mtx['g'] ⍵}</li>
 <li>print  ← {⍺ mtx['p'] ⍵}</li>
 <li>homgeneous  ← {⍺ mtx['h'] ⍵}</li>
+<li>norm  ← {mtx['n'] ⍵}</li>
 </ul>
 
 ## Details
@@ -88,6 +90,10 @@ and 0.0j0.0 elsewhere.
 If the argument is a scaler, the function returns a 2 × 2 2D rotation
 transform matrix.  If the argument is a ⍴3 vector, the function returns
 a 3 × 3  rotation transform matrix.
+
+#### Normalise
+
+
 
 #### Gaussian
 
@@ -124,7 +130,7 @@ a non-zero imaginary component...)
 
 #### Print
 
-Pretty-prints matrices:
+Pretty-prints matrices to a file:
 
 >*matrix* mtx['p'] '*filename*'
 

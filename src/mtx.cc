@@ -360,17 +360,17 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     const UCS_string  ustr = X->get_UCS_ravel();
     UTF8_string which (ustr);
     switch(*which.c_str ()) {
-    case 'd':
+    case 'd':						// working
     case 'D': op = OP_DETERMINANT; break;
-    case 'c':
+    case 'c':						// working
     case 'C': op = OP_CROSS_PRODUCT; break;
-    case 'i':
+    case 'i':						// working
     case 'I': op = OP_IDENT; break;
-    case 'r':
+    case 'r':						// working
     case 'R': op = OP_ROTATION_MATRIX; break;
-    case 'n':
+    case 'n':						// working
     case 'N': op = OP_NORM; break;
-    case 'g':
+    case 'g':						// working
     case 'G': op = OP_GAUSSIAN; break;
     }
     if (op == OP_UNKNOWN) {
@@ -408,8 +408,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  }	
 	  break;
 	case OP_NORM:
-	  rc = B;
-	  rc->check_value(LOC);
+	  UERR << "Scalar argument.  Normalisation posible." << endl;
+	  RANK_ERROR;
 	  break;
 	case OP_ROTATION_MATRIX:
 	  {
@@ -542,15 +542,47 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	ShapeItem rows = B->get_shape_item(0);
 	ShapeItem cols = B->get_shape_item(1);
 
+	if (op != OP_CROSS_PRODUCT &&
+	    op != OP_GAUSSIAN &&
+	    op != OP_NORM &&
+	    rows != cols) {
+	  UERR << "Not a square matrix." << endl;
+	  RANK_ERROR;
+	}
+
 	switch(op) {
-	case OP_NORM:			// fixme--use axis
+	case OP_NORM:
+	  {
+	    complex<double> sum (0.0, 0.0);;
+	    for (int i = 0; i < count; i++) {
+	      const Cell & Bv = B->get_cravel (i);
+	      complex<double> val =
+		complex<double>(Bv.get_real_value (),
+				Bv.is_complex_cell () ?
+				Bv.get_imag_value () : 0.0);
+	      sum += val * val;
+	    }
+	    sum = sqrt (sum);
+
+	    Shape shape_Z;
+	    shape_Z.add_shape_item(rows);
+	    shape_Z.add_shape_item(cols);
+	    rc = Value_P (shape_Z, LOC);
+
+	    for (int i = 0; i < count; i++) {
+	      const Cell & Bv = B->get_cravel (i);
+	      complex<double> val =
+		complex<double>(Bv.get_real_value (),
+				Bv.is_complex_cell () ?
+				Bv.get_imag_value () : 0.0);
+	      val /= sum;
+	      (*rc).set_ravel_Complex (i, val.real (), val.imag ());
+	    }
+	    rc->check_value(LOC);
+	  }
 	  break;
 	case OP_GAUSSIAN:
 	  rc = genRands (B);
-	  break;
-	case OP_DETERMINANT:
-	  rc = B;
-	  rc->check_value(LOC);
 	  break;
 	case OP_CROSS_PRODUCT:
 	  rows++;
@@ -559,12 +591,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	"For cross product, the shape of the argument must be [n-1 n]" << endl;
 	    RANK_ERROR;
 	  }
-	}
-	if (op != OP_CROSS_PRODUCT &&
-	    op != OP_GAUSSIAN &&
-	    rows != cols) {
-	  UERR << "Not a square matrix." << endl;
-	  RANK_ERROR;
 	}
 	
 	Matrix *mtx = new Matrix (rows, cols);
@@ -640,6 +666,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    rc = (det.imag () == 0.0) ?
 	      FloatScalar(det.real (), LOC) :
 	      ComplexScalar(det.real (), det.imag (), LOC);
+	    rc->check_value(LOC);
 	  }
 	  break;
 	case OP_CROSS_PRODUCT:
@@ -712,13 +739,13 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     const UCS_string  ustr = X->get_UCS_ravel();
     UTF8_string which (ustr);
     switch(*which.c_str ()) {
-    case 'a':
+    case 'a':						// working
     case 'A': op = OP_VECTOR_ANGLE; break;
-    case 'c':
+    case 'c':						// working
     case 'C': op = OP_CROSS_PRODUCT; break;
-    case 'p':
+    case 'p':						// working
     case 'P': op = OP_PRINT; break;
-    case 'h':
+    case 'h':						// working
     case 'H': op = OP_HOMOGENEOUS_MATRIX; break;
     }
     if (op == OP_UNKNOWN) {
@@ -754,7 +781,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	    fprintf (ofile, "%gj%g ", Avr, Avi);
 	  }
 	  else
-	    fprintf (ofile, "%g", Avr);
+	    fprintf (ofile, "%g ", Avr);
 	}
 	fprintf (ofile, "\n");
       }
@@ -814,6 +841,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       }
 
       fclose (ofile);
+      COUT << "File " << fn << " printed.\n";
       return Token(TOK_APL_VALUE1, rc);
     }
     else {
