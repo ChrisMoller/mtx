@@ -41,7 +41,7 @@ where <em>string</em> is one of:
 <li><em>g</em> -- gaussian</li>
 <li><em>p</em> -- print</li>
 <li><em>h</em> -- homogeneous</li>
-<li><em>h</em> -- normalise</li>
+<li><em>n</em> -- normalise</li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
@@ -72,12 +72,37 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 
 The argument for determinants must be a real or complex square matrix and the
 function returns a real result if possible or a complex result if necessary.
+E.g.,
+
+>det 3 3⍴5 3 1 9 7 6 2 8 4
+
+¯114
 
 #### Eigenvalues, eigenvectors
 
 The argument for these operations must be a real or complex square matrix.  The
-eigenvalue function returns a complex vector of the values.  The eigenvector
-function returns a complex matrix of the same shape of the argument.
+eigenvalue function returns a vector of the values.  The eigenvector
+function returns a matrix of the same shape of the argument where each row is
+the eigenvector corresponding to that index of the eigenvalue vector.  I.e.,
+eigenvalue[i] corresponds to eigenvector[i;].  E.g.
+
+>t←3 3⍴5 3 1 9 7 6 2 8 4
+
+>evec t
+
+<pre>
+¯0.158 0.637  ¯0.755
+¯0.572 0.0646  0.818
+ 0.282 0.753   0.594
+</pre>
+
+>eval t
+
+¯2.34 3.23 15.1
+
+(Eigenvalue ¯2.34 will correspond to eigenvector [¯0.158 0.637  ¯0.755]. and
+so on.)
+
 
 #### Identity
 
@@ -85,16 +110,62 @@ The argument for this operation must be a scalar integer and it returns a
 complex square matrix of that dimension with the value 1.0j0.0 on the diagonal
 and 0.0j0.0 elsewhere.
 
+>ident 5
+
+<pre>
+1 0 0 0 0
+0 1 0 0 0
+0 0 1 0 0
+0 0 0 1 0
+0 0 0 0 1
+</pre>
+
+
 #### Rotate
 
-If the argument is a scaler, the function returns a 2 × 2 2D rotation
+If the argument is a scalar, the function returns a 2 × 2 2D rotation
 transform matrix.  If the argument is a ⍴3 vector, the function returns
 a 3 × 3  rotation transform matrix.
+
+>rotate d2r 45
+
+<pre>
+0.707 ¯0.707
+0.707  0.707
+</pre>
+
+>rotate d2r 30 45 60
+
+<pre>
+ 0.612 0.28   0.739
+ 0.354 0.739 ¯0.573
+¯0.707 0.612  0.354
+</pre>
+
 
 #### Normalise
 
 For vector or matrix arguments, returns a value of the same shape such that
 +/,(norm ⍵)*2 = 1.  (Not valid for scalar arguments.)
+
+>norm 2 4 6
+
+0.267 0.535 0.802
+
+>+/,(norm 2 4 6)*2
+
+1
+
+>norm 2 3⍴⍳6
+
+<pre>
+0.105 0.21  0.314
+0.419 0.524 0.629
+</pre>
+
+>+/,(norm 2 3⍴⍳6)*2
+
+1
 
 #### Gaussian
 
@@ -107,12 +178,20 @@ will retirn a ⍴ 3 vector of randoms with standard veviations of 2.0, 3.0, and
 4.0.  All results are of mean 0.0j0.0 but can be adjusted by addition,
 subtraction, or whatever.
 
-**(mtx['g'] (500 2⍴5.0 2.0)) mtx['p'] 's500.data'**
+E.g., given 500 Gaussian-distributes
+
+>t←grand (500 2⍴5.0 2.0)
+
+>t print 's500.data'
+
+rendered by gnuplot yields:
 
 ![A scatterplot of 500 normally distributed points in 2-space](s500.jpg
  "Normal distribution")
- 
-**(mtx['g'] (5000 2⍴5.0 2.0)) mtx['p'] 's5000.data'**
+
+For 5000 points:
+
+>grand (5000 2⍴5.0 2.0)) print 's5000.data'
 
 ![A scatterplot of 5000 normally distributed points in 2-space](s5000.jpg
  "Normal distribution")

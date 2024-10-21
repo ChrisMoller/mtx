@@ -347,8 +347,12 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     showHelpLine ('d', "eterminant");
     showHelpLine ('c', "ross_product");
     showHelpLine ('i', "ident");
-    showHelpLine ('r', "otation");
+    showHelpLine ('r', "otate");
     showHelpLine ('n', "orm");
+    showHelpLine ('a', "ngle");
+    showHelpLine ('g', "rand");
+    showHelpLine ('p', "rint");
+    showHelpLine ('h', "omogeneous");
     showHelpLine (0, "eigenvector");
     showHelpLine (0, "eigenvalue");
     cout << "\n\tdefaults to determinant if the index is omitted.\n\n";
