@@ -8,7 +8,9 @@ including support for:
 <li>Identity matrices</li>
 <li>Vector cross products</li>
 <li>Vector interior angles</li>
-<li>Vector or scalar rotation matrix</li>
+<li>Vector or scalar rotation matrices</li>
+<li>Homogeneous matrices</li>
+<li>Vector/matrix normalisation</li>
 <li>Gaussian complex random values</li>
 </ul>
 
@@ -86,14 +88,16 @@ function returns a matrix of the same shape of the argument where each row is
 the eigenvector corresponding to that index of the eigenvalue vector.  I.e.,
 eigenvalue[i] corresponds to eigenvector[i;].  E.g.
 
->t←3 3⍴5 3 1 9 7 6 2 8 4
+>t←4 4 ⍴ ¯1 1 ¯1 1 ¯8 4 ¯2 1 27 9 3 1 64 16 4 1
 
 >evec t
 
 <pre>
-¯0.158 0.637  ¯0.755
-¯0.572 0.0646  0.818
- 0.282 0.753   0.594
+ 0.0999           0.111         ¯0.293          ¯0.945
+ 0.0431J0.00969  ¯0.0709J0.139   0.517J¯0.016    0.84J0.0414
+ 0.0431J¯0.00969 ¯0.0709J¯0.139  0.517J0.016     0.84J¯0.0414
+¯0.145            0.357          0.919           0.0812
+
 </pre>
 
 >eval t

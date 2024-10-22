@@ -25,6 +25,7 @@
 #include "../mtx_config.h"
 
 #include <stdio.h>
+#include <dlfcn.h>
 
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
@@ -54,6 +55,9 @@
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
+
+static void * gsl_lib = nullptr;
+static void * gslcblas_lib = nullptr;
 
 using namespace std;
 
@@ -626,7 +630,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  break;
 	case OP_EIGENVECTORS:
 	  {
-#ifdef HAVE_EIGEN
 	    Matrix res = getEigenvectors (mtx);
 	    Shape shape_Z;
 	    shape_Z.add_shape_item(mtx->rows () * mtx->cols ());
@@ -643,15 +646,10 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    shape_W.add_shape_item(mtx->rows ());
 	    shape_W.add_shape_item(mtx->cols ());
 	    (*rc).set_shape (shape_W);
-#else
-	  UERR << "Eigen operations not supported" << endl;
-	  DOMAIN_ERROR;
-#endif
 	  }
 	  break;
 	case OP_EIGENVALUES:
 	  {
-#ifdef HAVE_EIGEN
 	    vector<complex<double>> res = getEigenvalues (mtx);
 	    Shape shape_Z;
 	    shape_Z.add_shape_item(mtx->cols ());
@@ -659,10 +657,6 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    for (int i = 0; i < mtx->cols (); i++) 
 	      (*rc).set_ravel_Complex (i, res[i].real (), res[i].imag ());
 	    rc->check_value(LOC);
-#else
-	  UERR << "Eigen operations not supported" << endl;
-	  DOMAIN_ERROR;
-#endif
 	  }
 	  break;
 	case OP_DETERMINANT:
@@ -966,6 +960,12 @@ eval_AB(Value_P A, Value_P B, const NativeFunction * caller)
 void *
 get_function_mux(const char * function_name)
 {
+  if (!gslcblas_lib)
+    gslcblas_lib = dlopen ("libgslcblas.so", RTLD_NOW | RTLD_GLOBAL);
+
+  if (!gsl_lib)
+    gsl_lib = dlopen ("libgsl.so", RTLD_LAZY | RTLD_GLOBAL);
+  
   // mandatory
   if (!strcmp(function_name, "get_signature"))
     return reinterpret_cast<void *>(&get_signature);
