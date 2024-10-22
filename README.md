@@ -102,7 +102,7 @@ eigenvalue[i] corresponds to eigenvector[i;].  E.g.
 
 >eval t
 
-¯2.34 3.23 15.1
+¯6.41 5.55J3.09 5.55J¯3.09 2.32
 
 (Eigenvalue ¯2.34 will correspond to eigenvector [¯0.158 0.637  ¯0.755]. and
 so on.)
