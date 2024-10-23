@@ -9,9 +9,10 @@ including support for:
 <li>Vector cross products</li>
 <li>Vector interior angles</li>
 <li>Vector or scalar rotation matrices</li>
-<li>Homogeneous matrices</li>
-<li>Vector/matrix normalisation</li>
 <li>Gaussian complex random values</li>
+<li>Vector/matrix normalisation</li>
+<li>Homogeneous matrices</li>
+<li>Covariance</li>
 </ul>
 
 ## Installation
@@ -41,14 +42,14 @@ where <em>string</em> is one of:
 <li><em>a</em> -- angle</li>
 <li><em>r</em> -- rotation</li>
 <li><em>g</em> -- gaussian</li>
-<li><em>p</em> -- print</li>
-<li><em>h</em> -- homogeneous</li>
 <li><em>n</em> -- normalise</li>
+<li><em>h</em> -- homogeneous</li>
+<li><em>C</em> -- cov</li>
+<li><em>p</em> -- print</li>
 </ul>
 
 (The single-character strings can actually be any string starting with that
-letter--spell out, if you like, <em>d</em> as <em>determinant</em>.  All
-strings are case-insensitive.)
+letter--spell out, if you like, <em>d</em> as <em>determinant</em>.)
 
 It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <ul>
@@ -61,9 +62,10 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>angle  ← {⍺ mtx['a'] ⍵}</li>
 <li>rotate ← {⍺ mtx['r'] ⍵}</li>
 <li>grand  ← {mtx['g'] ⍵}</li>
-<li>print  ← {⍺ mtx['p'] ⍵}</li>
+<li>norm   ← {mtx['n'] ⍵}</li>
 <li>homgeneous  ← {⍺ mtx['h'] ⍵}</li>
-<li>norm  ← {mtx['n'] ⍵}</li>
+<li>covariance  ← {⍺ mtx['C'] ⍵}</li>
+<li>print  ← {⍺ mtx['p'] ⍵}</li>
 </ul>
 
 ## Details

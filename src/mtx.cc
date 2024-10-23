@@ -353,6 +353,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     cout << "\tvalid '\e[3mindex\e[0m' values: (underscored minimal)\n\n";
     showHelpLine ('d', "eterminant");
     showHelpLine ('c', "ross_product");
+    showHelpLine ('C', "ovariance");
     showHelpLine ('i', "ident");
     showHelpLine ('r', "otate");
     showHelpLine ('n', "orm");
@@ -374,8 +375,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     switch(*which.c_str ()) {
     case 'd':						// working
     case 'D': op = OP_DETERMINANT; break;
-    case 'c':						// working
-    case 'C': op = OP_CROSS_PRODUCT; break;
+    case 'c': op = OP_CROSS_PRODUCT; break;		// working
+    case 'C': op = OP_COVARIANCE; break;
     case 'i':						// working
     case 'I': op = OP_IDENT; break;
     case 'r':						// working
@@ -563,6 +564,49 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	}
 
 	switch(op) {
+	case OP_COVARIANCE:
+	  {
+	    /***  split mtx into vecs by rows ***/
+	    vector<vector<double>> Breals (rows);
+	    vector<vector<double>> Bimags (rows);
+	    loop (r, rows) {
+	      Breals[r].reserve (cols);
+	      Bimags[r].reserve (cols);
+	      int offset = r * cols;
+	      loop (c, cols) {
+		const Cell & Bv = B->get_cravel (offset + c);
+		Breals[r][c] =
+		  Bv.get_real_value ();
+		Bimags[r][c] =
+		  Bv.is_complex_cell () ? Bv.get_imag_value () : 0.0;
+	      }
+	    }
+	    Shape shape_Z;
+	    shape_Z.add_shape_item (rows * cols);
+	    rc = Value_P (shape_Z, LOC);
+	    for (int r = 0; r < rows; r++) {
+	      for (int c = r; c < rows; c++) {
+		double realcov = gsl_stats_covariance (Breals[r].data (), 1,
+						       Breals[c].data (), 1,
+						       cols);
+		double imagcov = gsl_stats_covariance (Bimags[r].data (), 1,
+						       Bimags[c].data (), 1,
+						       cols);
+		int ix = (r * cols) + c;
+		(*rc).set_ravel_Complex (ix,   realcov, imagcov);
+		if (r != c) {
+		  int ix = (c * cols) + r;
+		  (*rc).set_ravel_Complex (ix,   realcov, imagcov);
+		}
+	      }
+	    }
+	    rc->check_value(LOC);
+	    Shape shape_W;
+	    shape_W.add_shape_item(rows);
+	    shape_W.add_shape_item(cols);
+	    (*rc).set_shape (shape_W);
+	  }
+	  break;
 	case OP_NORM:
 	  {
 	    complex<double> sum (0.0, 0.0);;
@@ -869,14 +913,16 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   case OP_COVARIANCE:
     {
       if (A_rank != 1 || B_rank != 1) {
+	UERR << "Both arguments must be vectors." << endl;
 	RANK_ERROR;
 	break;
       }
       if (A_count != B_count) {
+	UERR << "Arguments must be of the same length." << endl;
 	LENGTH_ERROR;
 	break;
       }
-      
+
       vector<double> Areals (A_count);
       vector<double> Aimags (A_count);
       vector<double> Breals (B_count);
@@ -888,12 +934,14 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	Aimags[c] = Av.is_complex_cell () ? Av.get_imag_value () : 0.0;
 	Breals[c] = Bv.get_real_value ();
 	Bimags[c] = Bv.is_complex_cell () ? Bv.get_imag_value () : 0.0;
-	double realcov =
-	  gsl_stats_covariance (Areals.data (), 1, Breals.data (), 1, A_count);
-	double imagcov =
-	  gsl_stats_covariance (Aimags.data (), 1, Bimags.data (), 1, A_count);
-	fprintf (stderr, "cov %g %g\n", realcov, imagcov);
       }
+      double realcov =
+	gsl_stats_covariance (Areals.data (), 1, Breals.data (), 1, A_count);
+      double imagcov =
+	gsl_stats_covariance (Aimags.data (), 1, Bimags.data (), 1, A_count);
+      rc = (imagcov == 0.0) ?
+	FloatScalar (realcov, LOC) :
+	ComplexScalar (realcov, imagcov, LOC);
     }
     break;
   case OP_HOMOGENEOUS_MATRIX:
