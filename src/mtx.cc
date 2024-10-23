@@ -45,6 +45,8 @@
 #include<fstream>
 #include<string>
 
+#include <gsl/gsl_statistics.h>
+
 #include "Native_interface.hh"
 #include "APL_types.hh"
 #include "Shape.hh"
@@ -77,7 +79,8 @@ enum {
   OP_HOMOGENEOUS_MATRIX,
   OP_NORM,
   OP_GAUSSIAN,
-  OP_PRINT
+  OP_PRINT,
+  OP_COVARIANCE
 };
 
 static bool
@@ -740,8 +743,8 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     switch(*which.c_str ()) {
     case 'a':						// working
     case 'A': op = OP_VECTOR_ANGLE; break;
-    case 'c':						// working
-    case 'C': op = OP_CROSS_PRODUCT; break;
+    case 'C': op = OP_COVARIANCE; break;
+    case 'c': op = OP_CROSS_PRODUCT; break;		// working
     case 'p':						// working
     case 'P': op = OP_PRINT; break;
     case 'h':						// working
@@ -863,6 +866,36 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   const auto      B_rank    = B->get_rank();
 
   switch(op) {
+  case OP_COVARIANCE:
+    {
+      if (A_rank != 1 || B_rank != 1) {
+	RANK_ERROR;
+	break;
+      }
+      if (A_count != B_count) {
+	LENGTH_ERROR;
+	break;
+      }
+      
+      vector<double> Areals (A_count);
+      vector<double> Aimags (A_count);
+      vector<double> Breals (B_count);
+      vector<double> Bimags (B_count);
+      loop (c, A_count) {
+	const Cell & Av = A->get_cravel (c);
+	const Cell & Bv = B->get_cravel (c);
+	Areals[c] = Av.get_real_value ();
+	Aimags[c] = Av.is_complex_cell () ? Av.get_imag_value () : 0.0;
+	Breals[c] = Bv.get_real_value ();
+	Bimags[c] = Bv.is_complex_cell () ? Bv.get_imag_value () : 0.0;
+	double realcov =
+	  gsl_stats_covariance (Areals.data (), 1, Breals.data (), 1, A_count);
+	double imagcov =
+	  gsl_stats_covariance (Aimags.data (), 1, Bimags.data (), 1, A_count);
+	fprintf (stderr, "cov %g %g\n", realcov, imagcov);
+      }
+    }
+    break;
   case OP_HOMOGENEOUS_MATRIX:
     {
       if (A_count == 3 && B_count == 3) 
