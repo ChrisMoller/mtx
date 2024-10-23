@@ -64,7 +64,8 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>grand  ← {mtx['g'] ⍵}</li>
 <li>norm   ← {mtx['n'] ⍵}</li>
 <li>homgeneous  ← {⍺ mtx['h'] ⍵}</li>
-<li>covariance  ← {⍺ mtx['C'] ⍵}</li>
+<li>cov    ← {⍺ mtx['C'] ⍵}</li>
+<li>covm   ← {mtx['C'] ⍵}</li>
 <li>print  ← {⍺ mtx['p'] ⍵}</li>
 </ul>
 
@@ -204,6 +205,7 @@ For 5000 points:
 (See Pretty-print (**mtx['p]**) below.)
 
 
+
 ### Dyadic
 
 #### Angle
@@ -269,6 +271,50 @@ it may mean.
 
 ¯3 6 ¯3
 
+#### Covariance
+
+Monadic covariance interprets each row of a matrix argument as samples of a
+given variable, computes the covariance of each sample set with respect to
+every other sample set, and presents the covariances as a matrix.  For example a
+matrix:
+
+<pre>
+ 6  3  5 15
+ 8  9 14 13
+16 12  4  1
+11 10  7  2
+</pre>
+
+would represent samples of four variables, [ 6  3  5 15 ] being sample of one
+variable, [ 8  9 14 13] samples of another variable, and so on.  Labelling the
+matrix M and these variables A, B, C, and D respectively,
+
+>covm M
+
+yields a matrix:
+
+<pre>
+cov(A, A)  cov(A, B)  cov(A, C)  cov(A, D)
+cov(B, A)  cov(B, B)  cov(C, C)  cov(D, D)
+cov(C, A)  cov(C, B)  cov(C, C)  cov(D, D)
+cov(D, A)  cov(D, B)  cov(C, C)  cov(D, D)
+</pre>
+
+i.e., in this example:
+
+<pre>
+ 28.3    7    ¯24.1 ¯18.8
+  7      8.67 ¯19.3  ¯9.33
+¯24.1  ¯19.3   48.3  26.2
+¯18.8   ¯9.33  26.2  16.3
+</pre>
+
+The dyadic form of covariance returns the covariance of the left and right
+arguments.  E.g.:
+
+>2 1 3 cov 3 1 2
+
+0.5
 
 I may add more functionality in later releases.  I'm open to suggestions.
 
