@@ -248,6 +248,19 @@ Returns a homogeneous matrix of the given translation and rotation.
 
 ### Ambivalent
 
+The direct invocation of these functions, mtx['c'] and mtx['C'] respectively,
+are ambivalent, but there's no way I could find to make named lambdas
+ambivalent.  Accordingly, I've suggested two lambdas for each of those
+functions:
+<br/>
+
+| lambda       |   function       |                     
+| :----------- | :--------------: |
+| cross        | ⍺ mtx['c'] ⍵ |  
+| crossm       | &nbsp; mtx['c'] ⍵ | 
+| cov          | ⍺ mtx['C'] ⍵ |  
+| crovm        | &nbsp; mtx['C'] ⍵ | 
+
 #### Cross product
 
 In dynadic form, both arguments must be rank 1 real or complex vectors and
@@ -315,6 +328,8 @@ arguments.  E.g.:
 >2 1 3 cov 3 1 2
 
 0.5
+
+### The End
 
 I may add more functionality in later releases.  I'm open to suggestions.
 
