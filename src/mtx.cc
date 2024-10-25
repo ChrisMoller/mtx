@@ -94,10 +94,10 @@ bool (*close_fun_is_unused)(Cause, const NativeFunction *) = &close_fun;
 static complex<double>
 genRand (double rsdev, double isdev)
 {
-  random_device rrd{};
-  random_device ird{};
-  mt19937 rgen{rrd()};
-  mt19937 igen{ird()};
+  random_device rrd;
+  random_device ird;
+  mt19937_64 rgen{rrd()};
+  mt19937_64 igen{ird()};
   normal_distribution rd{0.0, rsdev};
   normal_distribution id{0.0, isdev};
 
@@ -237,7 +237,7 @@ genRands (Value_P B)
     const Cell & Bv = B->get_cravel (i);
     APL_Float xvr = Bv.get_real_value ();
     APL_Float xvi = Bv.is_complex_cell ()
-      ? Bv.get_imag_value () : 0.0;
+      ? Bv.get_imag_value () : xvr;
       complex<double> val = genRand (xvr, xvi);
       if (is_cpx) 
 	(*rc).set_ravel_Complex (i, val.real (), val.imag ());
@@ -341,6 +341,15 @@ genRotation (int tp, Value_P A, Value_P B)
   shape_W.add_shape_item (sdim);
   (*rc).set_shape (shape_W);
   return rc;
+}
+
+static void
+Normalise (vector<double> &v)
+{
+  double mean = gsl_stats_mean (v.data (), 1, v.size ());
+  double sdev = gsl_stats_sd_m(v.data (), 2, v.size (), mean);
+  loop (c, v.size ())
+    v[c] = (v[c] - mean) / sdev;
 }
 
 static Token
@@ -558,6 +567,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	if (op != OP_CROSS_PRODUCT &&
 	    op != OP_GAUSSIAN &&
 	    op != OP_NORM &&
+	    op != OP_COVARIANCE &&
 	    rows != cols) {
 	  UERR << "Not a square matrix." << endl;
 	  RANK_ERROR;
@@ -580,9 +590,11 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 		Bimags[r][c] =
 		  Bv.is_complex_cell () ? Bv.get_imag_value () : 0.0;
 	      }
+	      Normalise (Breals[r]);
+	      Normalise (Bimags[r]);
 	    }
 	    Shape shape_Z;
-	    shape_Z.add_shape_item (rows * cols);
+	    shape_Z.add_shape_item (rows * rows);
 	    rc = Value_P (shape_Z, LOC);
 	    for (int r = 0; r < rows; r++) {
 	      for (int c = r; c < rows; c++) {
@@ -592,10 +604,10 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 		double imagcov = gsl_stats_covariance (Bimags[r].data (), 1,
 						       Bimags[c].data (), 1,
 						       cols);
-		int ix = (r * cols) + c;
+		int ix = (r * rows) + c;
 		(*rc).set_ravel_Complex (ix,   realcov, imagcov);
 		if (r != c) {
-		  int ix = (c * cols) + r;
+		  int ix = (c * rows) + r;
 		  (*rc).set_ravel_Complex (ix,   realcov, imagcov);
 		}
 	      }
@@ -603,7 +615,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    rc->check_value(LOC);
 	    Shape shape_W;
 	    shape_W.add_shape_item(rows);
-	    shape_W.add_shape_item(cols);
+	    shape_W.add_shape_item(rows);
 	    (*rc).set_shape (shape_W);
 	  }
 	  break;

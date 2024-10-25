@@ -329,6 +329,30 @@ arguments.  E.g.:
 
 0.5
 
+### Principal Component Analysis
+
+The principal axis sampled data is the eigensystem of the covariance of the
+sample vectors:
+
+<pre>
+      m←4 4⍴16?16
+      m
+ 9  7  3  2
+ 8 16  1 15
+13 10 14  5
+12  6  4 11
+
+      evec covm m
+¯0.00278 ¯0.862   0.445 ¯0.245
+¯0.771   ¯0.0651 ¯0.401 ¯0.491
+¯0.308   ¯0.395  ¯0.325  0.802
+ 0.558   ¯0.312  ¯0.732 ¯0.236
+
+      eval covm m
+63.1 16.6 11.1 0
+
+</pre>
+
 ### The End
 
 I may add more functionality in later releases.  I'm open to suggestions.
