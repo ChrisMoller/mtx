@@ -1,11 +1,11 @@
 
-set terminal jpeg enhanced size 512,480 font NimbusRoman 10
+set terminal jpeg enhanced size 512,512 font NimbusRoman 10
 
 set output "genr.jpg"
 
 set title "cov"
 
-plot  "genr.data" using 1:2 with points pt 7 ps .75 t 'data', \
+plot  [0:120][0:120] "genr.data" using 1:2 with points pt 7 ps .75 t 'data', \
    "genre1.data" using 1:2 with lines t "1", \
    "genre2.data" using 1:2 with lines t "2"
 
