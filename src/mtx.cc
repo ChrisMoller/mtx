@@ -819,13 +819,49 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   const CellType B_celltype = B->deep_cell_types();
 
   if (op == OP_PRINT) {
+    if (A->is_char_string () &&
+	B->is_char_string ()) {
+      const UCS_string ustr = B->get_UCS_ravel();
+      UTF8_string fn (ustr);
+      char *fns = (char *)(fn.c_str ());
+      bool append = false;
+      if (strlen (fns) > 1) {
+	if (*fns == '>') {
+	  fns++;
+	  append = true;
+	}
+      }
+      FILE *ofile = append ?
+	fopen (fns, "a") :
+	fopen (fns, "w");
+
+      const UCS_string vstr = A->get_UCS_ravel();
+      UTF8_string val (vstr);
+      char *vs = (char *)(val.c_str ());
+
+      fprintf (ofile, "%s\n", vs);
+      fclose (ofile);
+
+      return Token(TOK_APL_VALUE1, rc);
+    }
     if ((A_celltype & CT_NUMERIC) &&
 	B->is_char_string ()) {
       const ShapeItem A_count   = A->element_count();
       const auto      A_rank    = A->get_rank();
       const UCS_string  ustr = B->get_UCS_ravel();
       UTF8_string fn (ustr);
-      FILE *ofile = fopen (fn.c_str (), "w");
+      char *fns = (char *)(fn.c_str ());
+      bool append = false;
+      if (strlen (fns) > 1) {
+	if (*fns == '>') {
+	  fns++;
+	  append = true;
+	}
+      }
+      FILE *ofile = append ?
+	fopen (fns, "a") :
+	fopen (fns, "w");
+      
       if (!ofile) {
 	UERR << "Open failure on " << ustr << endl;
 	DOMAIN_ERROR;
@@ -899,7 +935,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       }
 
       fclose (ofile);
-      COUT << "File " << fn << " printed.\n";
+      //      COUT << "File " << fn << " printed.\n";
       return Token(TOK_APL_VALUE1, rc);
     }
     else {
