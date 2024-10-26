@@ -350,8 +350,90 @@ sample vectors:
 
       eval covm m
 63.1 16.6 11.1 0
+</pre>
+
+A graphical example using a two-variable system of 100 randomised
+samples each results in eigenvalues of [1030.44j0 17.6173j0] and eigenvectors
+of:
+
+<pre>
+   0.902754    0.430156 
+  -0.430156    0.902754
+</pre>
+
+as represented in:
+
+![PCA example data](pca.jpg "PCA example data")
+
+Note that
+
+>r2d (0.902754 0.430156) angle (¯0.430156 0.902754)
+
+90
+
+I.e., the eigenvectors are orthogonal, as expected.
+
+The APL for all this:
+
+---
+<pre>
+m←c pca e;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s
+⍝c←100
+x←4×grand c⍴1
+y←4×grand c⍴1
+xb←x+⍳c
+yb←y+e×⍳c
+xa←(+/xb)÷⍴xb
+ya←(+/yb)÷⍴yb
+av←xa,ya
+d←2 c⍴xb,yb
+(⍉2 c⍴d) print 'pca.data'
+co←covm d
+el←eval co
+ec←20×evec co
+
+'eigenvectors' print 'pcaeigensystem.txt'
+(ec÷20) print '>pcaeigensystem.txt'
+'eigenvalues' print '>pcaeigensystem.txt'
+el print '>pcaeigensystem.txt'
+
+xa← 100×(1↑el)÷+/el
+xb← 100×(¯1↑el)÷+/el
+
+s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .2,.8'
+s print 'pcalabels.gp'
+s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .2,.75'
+s print '>pcalabels.gp'
+
+(2 2⍴(av-(ec[⎕io;])÷2),av+(ec[⎕io;])÷2) print 'pcae1.data'
+(2 2⍴(av-(ec[⎕io+1;])÷2),av+(ec[⎕io+1;])÷2) print 'pcae2.data'
+</pre>
+---
+
+The jpg was created by gnuplot using:
+
+---
+<pre>
+set terminal jpeg enhanced size 512,360 font NimbusRoman 10
+
+set output "pca.jpg"
+
+set title "Principal component analysis of 2D biased random samples"
+
+load "pcalabels.gp"
+
+plot  [0:120][0:80] "pca.data" using 1:2 with points pt 7 ps .75 t 'Samples', \
+   "pcae1.data" using 1:2 with lines lc "red" t "λ0 axis", \
+   "pcae2.data" using 1:2 with lines lc "green" t "λ1 axis"
+</pre>
+---
+
+<pre>
+
+
 
 </pre>
+
 
 ### The End
 

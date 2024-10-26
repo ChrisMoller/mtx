@@ -13,6 +13,11 @@ co←covm d
 el←eval co
 ec←20×evec co
 
+'eigenvectors' print 'pcaeigensystem.txt'
+(ec÷20) print '>pcaeigensystem.txt'
+'eigenvalues' print '>pcaeigensystem.txt'
+el print '>pcaeigensystem.txt'
+
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
 
