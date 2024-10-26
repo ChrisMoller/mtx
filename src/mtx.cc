@@ -935,7 +935,6 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       }
 
       fclose (ofile);
-      //      COUT << "File " << fn << " printed.\n";
       return Token(TOK_APL_VALUE1, rc);
     }
     else {
