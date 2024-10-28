@@ -1,5 +1,6 @@
-m←c pca e;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s;⎕io;m0;m1;h
+m←c pca a;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s;⎕io;m0;m1;h
 ⎕io←0
+e←tand a
 x←4×grand c⍴1
 y←4×grand c⍴1
 xb←x+⍳c
@@ -23,13 +24,13 @@ xb← 100×(¯1↑el)÷+/el
 
 h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
-s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .2,.8'
+s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .1,.8'
 x←'%s' s ⎕fio[22] h  ⍝ fwrite
 x←⎕fio[16] h ⍝ flush
 x←10⎕fio[42] h     ⍝ newline
 ⍝x←⎕fio[16] h ⍝ flush
 
-s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .2,.75'
+s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .1,.75'
 x←'%s' s ⎕fio[22] h  ⍝ fwrite
 x←⎕fio[16] h ⍝ flush
 x←10⎕fio[42] h     ⍝ newline
@@ -38,12 +39,12 @@ x←10⎕fio[42] h     ⍝ newline
 m0←atand ec[0;1]÷ec[0;0]
 m1←atand ec[1;1]÷ec[1;0]
 
-s←⍕'set label "angle 0 = ', m0, ' degress" at graph .2,.7'
+s←⍕'set label "angle 0 = ', m0, ' degress (nominally ', a, ')" at graph .1,.7'
 x←'%s' s ⎕fio[22] h  ⍝ fwrite
 x←⎕fio[16] h ⍝ flush
 x←10⎕fio[42] h     ⍝ newline
 
-s←⍕'set label "angle 1 = ', m1, ' degrees" at graph .2,.65'
+s←⍕'set label "angle 1 = ', m1, ' degrees (nominally ', (a-90), ')" at graph .1,.65'
 x←'%s' s ⎕fio[22] h  ⍝ fwrite
 x←⎕fio[16] h ⍝ flush
 x←10⎕fio[42] h     ⍝ newline

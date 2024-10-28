@@ -57,14 +57,14 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>eval   ← {mtx['eigenvalue'] ⍵}</li>
 <li>evec   ← {mtx['eigenvector'] ⍵}</li>
 <li>ident  ← {mtx['i'] ⍵}</li>
-<li>cross  ← {⍺ mtx['c'] ⍵}</li>
+<li>crossd ← {⍺ mtx['c'] ⍵}</li>
 <li>crossm ← {mtx['c'] ⍵}</li>
 <li>angle  ← {⍺ mtx['a'] ⍵}</li>
 <li>rotate ← {⍺ mtx['r'] ⍵}</li>
 <li>grand  ← {mtx['g'] ⍵}</li>
 <li>norm   ← {mtx['n'] ⍵}</li>
 <li>homgeneous  ← {⍺ mtx['h'] ⍵}</li>
-<li>cov    ← {⍺ mtx['C'] ⍵}</li>
+<li>covd   ← {⍺ mtx['C'] ⍵}</li>
 <li>covm   ← {mtx['C'] ⍵}</li>
 <li>print  ← {⍺ mtx['p'] ⍵}</li>
 </ul>
@@ -256,10 +256,31 @@ functions:
 
 | lambda       |   function       |                     
 | :----------- | :--------------: |
-| cross        | ⍺ mtx['c'] ⍵ |  
+| crossd       | ⍺ mtx['c'] ⍵ |  
 | crossm       | &nbsp; mtx['c'] ⍵ | 
-| cov          | ⍺ mtx['C'] ⍵ |  
-| crovm        | &nbsp; mtx['C'] ⍵ | 
+| covd         | ⍺ mtx['C'] ⍵ |  
+| crovm        | &nbsp; mtx['C'] ⍵ |
+
+Or, alternatively:
+
+<pre>
+z←l cross r
+→(0≠⎕nc 'l')/Dyadic
+z←mtx['c'] r
+→0
+Dyadic:
+z←l mtx['c'] r
+</pre>
+
+<pre>
+z←l cov r
+→(0≠⎕nc 'l')/Dyadic
+z←mtx['C'] r
+→0
+Dyadic:
+z←l mtx['C'] r
+</pre>
+
 
 #### Cross product
 
@@ -276,7 +297,7 @@ shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.
 
->(1 2 3) cross 4 5 6
+>(1 2 3) crossd 4 5 6
 
 ¯3 6 ¯3
 
@@ -325,7 +346,7 @@ i.e., in this example:
 The dyadic form of covariance returns the covariance of the left and right
 arguments.  E.g.:
 
->2 1 3 cov 3 1 2
+>2 1 3 covd 3 1 2
 
 0.5
 
@@ -377,8 +398,9 @@ The APL for all this:
 
 ---
 <pre>
-m←c pca e;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s
-⍝c←100
+m←c pca a;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s;⎕io;m0;m1;h
+⎕io←0
+e←tand a
 x←4×grand c⍴1
 y←4×grand c⍴1
 xb←x+⍳c
@@ -387,26 +409,53 @@ xa←(+/xb)÷⍴xb
 ya←(+/yb)÷⍴yb
 av←xa,ya
 d←2 c⍴xb,yb
-(⍉2 c⍴d) print 'pca.data'
+x←(⍉2 c⍴d) print 'pca.data'
 co←covm d
 el←eval co
 ec←20×evec co
 
-'eigenvectors' print 'pcaeigensystem.txt'
-(ec÷20) print '>pcaeigensystem.txt'
-'eigenvalues' print '>pcaeigensystem.txt'
-el print '>pcaeigensystem.txt'
+x←'eigenvectors' print 'pcaeigensystem.txt'
+x←(ec÷20) print '>pcaeigensystem.txt'
+x←'eigenvalues' print '>pcaeigensystem.txt'
+x←el print '>pcaeigensystem.txt'
 
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
 
-s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .2,.8'
-s print 'pcalabels.gp'
-s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .2,.75'
-s print '>pcalabels.gp'
+h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
-(2 2⍴(av-(ec[⎕io;])÷2),av+(ec[⎕io;])÷2) print 'pcae1.data'
-(2 2⍴(av-(ec[⎕io+1;])÷2),av+(ec[⎕io+1;])÷2) print 'pcae2.data'
+s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .1,.8'
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+x←⎕fio[16] h ⍝ flush
+x←10⎕fio[42] h     ⍝ newline
+⍝x←⎕fio[16] h ⍝ flush
+
+s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .1,.75'
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+x←⎕fio[16] h ⍝ flush
+x←10⎕fio[42] h     ⍝ newline
+⍝x←⎕fio[16] h ⍝ flush
+
+m0←atand ec[0;1]÷ec[0;0]
+m1←atand ec[1;1]÷ec[1;0]
+
+s←⍕'set label "angle 0 = ', m0, ' degress (nominally ', a, ')" at graph .1,.7'
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+x←⎕fio[16] h ⍝ flush
+x←10⎕fio[42] h     ⍝ newline
+
+s←⍕'set label "angle 1 = ', m1, ' degrees (nominally ', (a-90), ')" at graph .1,.65'
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+x←⎕fio[16] h ⍝ flush
+x←10⎕fio[42] h     ⍝ newline
+
+x←⎕fio[4] h
+
+
+x←(2 2⍴(av-(ec[0;])÷2),av+(ec[0;])÷2) print 'pcae1.data'
+x←(2 2⍴(av-(ec[1;])÷2),av+(ec[1;])÷2) print 'pcae2.data'
+
+
 </pre>
 ---
 
@@ -427,6 +476,10 @@ plot  [0:120][0:80] "pca.data" using 1:2 with points pt 7 ps .75 t 'Samples', \
    "pcae2.data" using 1:2 with lines lc "green" t "λ1 axis"
 </pre>
 ---
+
+The gnuplot data was created by:
+
+>200 pca 30
 
 <pre>
 
