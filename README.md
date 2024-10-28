@@ -373,7 +373,7 @@ sample vectors:
 63.1 16.6 11.1 0
 </pre>
 
-A graphical example using a two-variable system of 100 randomised
+A typical graphical example using a two-variable system of 100 randomised
 samples each results in eigenvalues of [1030.44j0 17.6173j0] and eigenvectors
 of:
 
