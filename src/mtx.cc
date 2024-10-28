@@ -402,6 +402,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	op = OP_EIGENVALUES;
     }
     if (op == OP_UNKNOWN) {
+      MORE_ERROR () << "Invalid mtx type specifoed";
       SYNTAX_ERROR;
     }
   }
@@ -430,7 +431,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  }	
 	  break;
 	case OP_NORM:
-	  UERR << "Scalar argument.  Normalisation posible." << endl;
+	  MORE_ERROR () << "Scalar argument.  Normalisation not posible.";
 	  RANK_ERROR;
 	  break;
 	case OP_ROTATION_MATRIX:
@@ -478,6 +479,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  }
 	  break;
 	default:
+	  MORE_ERROR () << "Invalid mtx type specifoed";
 	  DOMAIN_ERROR;
 	  break;
 	}
@@ -522,14 +524,16 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	  {
 	    if (count == 3)
 	      rc = genRotation (9, nullptr, B);
-	    else
+	    else {
+	      MORE_ERROR () << "Argument must be a vector of length 3";
 	      RANK_ERROR;
+	    }
 	  }
 	  break;
 	case OP_DETERMINANT:
 	  if (B->is_empty ()) {
+	    MORE_ERROR () << "Null argument.";
 	    LENGTH_ERROR;
-	    UERR << "Null argument." << endl;
 	  }
 	  else {
 	    if (count == 1) {
@@ -543,12 +547,13 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 		rc = FloatScalar(xvr, LOC);
 	    }
 	    else {
-	      UERR << "Vector argument.  No determinant posible." << endl;
+	      MORE_ERROR () << "Vector argument.  No determinant posible.";
 	      LENGTH_ERROR;
 	    }
 	  }
 	  break;
 	default:
+	  MORE_ERROR () << "Unknown operation requested.";
 	  RANK_ERROR;
 	  break;
 	}
@@ -557,8 +562,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     case 2:		// matrix
       {
 	if (B->is_empty ()) {
+	  MORE_ERROR () << "Null argument.";
 	  LENGTH_ERROR;	
-	  UERR << "Null argument." << endl;
 	}
 	
 	ShapeItem rows = B->get_shape_item(0);
@@ -569,7 +574,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	    op != OP_NORM &&
 	    op != OP_COVARIANCE &&
 	    rows != cols) {
-	  UERR << "Not a square matrix." << endl;
+	  MORE_ERROR () << "Not a square matrix.";
 	  RANK_ERROR;
 	}
 
@@ -655,8 +660,8 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	case OP_CROSS_PRODUCT:
 	  rows++;
 	  if (rows != cols) {
-	    UERR <<
-	"For cross product, the shape of the argument must be [n-1 n]" << endl;
+	    MORE_ERROR () << 
+	      "For cross product, the shape of the argument must be [n-1 n]";
 	    RANK_ERROR;
 	  }
 	}
@@ -685,6 +690,7 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
 	case OP_GAUSSIAN:	// do nothing
 	  break;
 	case OP_IDENT:
+	  MORE_ERROR () << "Must be a scalae argument.";
 	  RANK_ERROR;
 	  break;
 	case OP_EIGENVECTORS:
@@ -757,13 +763,15 @@ eval_XB(Value_P X, Value_P B, const NativeFunction * caller)
     default:		// can't deal with it
       if (op == OP_GAUSSIAN)
 	rc = genRands (B);
-      else
+      else {
+	MORE_ERROR () << "Argument must be scalar, vector, or matrix";
 	RANK_ERROR;
+      }
       break;
     }
   }
   else {				// not numeric
-    UERR << "Non-numeric argument." << endl;
+    MORE_ERROR () << "Non-numeric argument.";
     DOMAIN_ERROR;
   }
 
@@ -807,6 +815,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     case 'H': op = OP_HOMOGENEOUS_MATRIX; break;
     }
     if (op == OP_UNKNOWN) {
+      MORE_ERROR () << "Invalid mtx type specifoed";
       SYNTAX_ERROR;
     }
   }
@@ -863,7 +872,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	fopen (fns, "w");
       
       if (!ofile) {
-	UERR << "Open failure on " << ustr << endl;
+	MORE_ERROR () << "Open failure on " << ustr;
 	DOMAIN_ERROR;
       }
       if (A_rank <= 1) {
@@ -938,7 +947,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       return Token(TOK_APL_VALUE1, rc);
     }
     else {
-      UERR << "Incompatible arguments.\n";
+      MORE_ERROR () << "Incompatible arguments.";
       DOMAIN_ERROR;
     }
   }
@@ -947,7 +956,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       (B_celltype & CT_NUMERIC)) {
   }
   else {				// not numeric
-    UERR << "Non-numeric argument." << endl;
+    MORE_ERROR () << "Non-numeric argument.";
     DOMAIN_ERROR;
   }
   
@@ -960,12 +969,12 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
   case OP_COVARIANCE:
     {
       if (A_rank != 1 || B_rank != 1) {
-	UERR << "Both arguments must be vectors." << endl;
+	MORE_ERROR () << "Both arguments must be vectors.";
 	RANK_ERROR;
 	break;
       }
       if (A_count != B_count) {
-	UERR << "Arguments must be of the same length." << endl;
+	MORE_ERROR () << "Arguments must be of the same length.";
 	LENGTH_ERROR;
 	break;
       }
@@ -995,8 +1004,10 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
     {
       if (A_count == 3 && B_count == 3) 
 	rc = genRotation (16, A, B);
-      else
+      else {
+	MORE_ERROR () << "Both arguments must be vectors of ⍴ = 3.";
 	RANK_ERROR;
+      }
     }
     break;
   case OP_CROSS_PRODUCT:
@@ -1035,7 +1046,7 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
       }
     }
     else {
-      UERR << "Invalid rank.." << endl;
+      MORE_ERROR () << "Invalid rank..";
       RANK_ERROR;
     }
     break;
@@ -1063,13 +1074,13 @@ eval_AXB(Value_P A, Value_P X, Value_P B,
 	rc = ComplexScalar((APL_Float)an.real (), an.imag (), LOC);
       }
       else {
-	UERR << "Invalid vector(s)." << endl;
+	MORE_ERROR () << "Invalid vector(s).";
 	DOMAIN_ERROR;
       }
     }
     break;
   default:
-    UERR << "Not a dyadic operation.\n";
+    MORE_ERROR () << "Not a dyadic operation.";
     DOMAIN_ERROR;
     break;
   }
