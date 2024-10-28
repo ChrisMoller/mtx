@@ -44,7 +44,7 @@ where <em>string</em> is one of:
 <li><em>g</em> -- gaussian</li>
 <li><em>n</em> -- normalise</li>
 <li><em>h</em> -- homogeneous</li>
-<li><em>C</em> -- cov</li>
+<li><em>C</em> -- covariance</li>
 <li><em>p</em> -- print</li>
 </ul>
 
@@ -352,7 +352,7 @@ arguments.  E.g.:
 
 ### Principal Component Analysis
 
-The principal axis sampled data is the eigensystem of the covariance of the
+The principal axis of sampled data is the eigensystem of the covariance of the
 sample vectors:
 
 <pre>
