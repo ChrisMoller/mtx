@@ -22,32 +22,22 @@ x←el print '>pcaeigensystem.txt'
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
 
-h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
-
-s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .1,.8'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
-⍝x←⎕fio[16] h ⍝ flush
-
-s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .1,.75'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
-⍝x←⎕fio[16] h ⍝ flush
-
 m0←atand ec[0;1]÷ec[0;0]
 m1←atand ec[1;1]÷ec[1;0]
 
-s←⍕'set label "angle 0 = ', m0, ' degress (nominally ', a, ')" at graph .1,.7'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
+h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
-s←⍕'set label "angle 1 = ', m1, ' degrees (nominally ', (a-90), ')" at graph .1,.65'
+s←⍕"set label \"λ0 = ", (1↑el), " (", xa, "%)\" at graph .1,.8\n"
 x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
+
+s←⍕"set label \"λ1 = ", (¯1↑el), " (", xb, "%)\" at graph .1,.75\n"
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+
+s←⍕"set label \"angle 0 = ", m0, " degress (nominally ", a, ")\" at graph .1,.7\n"
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
+
+s←⍕"set label \"angle 1 = ", m1, " degrees (nominally ", (a-90), ")\" at graph .1,.65\n"
+x←'%s' s ⎕fio[22] h  ⍝ fwrite
 
 x←⎕fio[4] h
 
