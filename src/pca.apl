@@ -9,15 +9,15 @@ xa←(+/xb)÷⍴xb
 ya←(+/yb)÷⍴yb
 av←xa,ya
 d←2 c⍴xb,yb
-x←(⍉2 c⍴d) print 'pca.data'
+⊣(⍉2 c⍴d) print 'pca.data'
 co←covm d
 el←eval co
 ec←20×evec co
 
-x←'eigenvectors' print 'pcaeigensystem.txt'
-x←(ec÷20) print '>pcaeigensystem.txt'
-x←'eigenvalues' print '>pcaeigensystem.txt'
-x←el print '>pcaeigensystem.txt'
+⊣'eigenvectors' print 'pcaeigensystem.txt'
+⊣(ec÷20) print '>pcaeigensystem.txt'
+⊣'eigenvalues' print '>pcaeigensystem.txt'
+⊣el print '>pcaeigensystem.txt'
 
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
@@ -28,20 +28,20 @@ m1←atand ec[1;1]÷ec[1;0]
 h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
 s←⍕"set label \"λ0 = ", (1↑el), " (", xa, "%)\" at graph .1,.8\n"
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
 s←⍕"set label \"λ1 = ", (¯1↑el), " (", xb, "%)\" at graph .1,.75\n"
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
 s←⍕"set label \"angle 0 = ", m0, " degress (nominally ", a, ")\" at graph .1,.7\n"
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
 s←⍕"set label \"angle 1 = ", m1, " degrees (nominally ", (a-90), ")\" at graph .1,.65\n"
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-x←⎕fio[4] h
+⊣⎕fio[4] h
 
 
-x←(2 2⍴(av-(ec[0;])÷2),av+(ec[0;])÷2) print 'pcae1.data'
-x←(2 2⍴(av-(ec[1;])÷2),av+(ec[1;])÷2) print 'pcae2.data'
+⊣(2 2⍴(av-(ec[0;])÷2),av+(ec[0;])÷2) print 'pcae1.data'
+⊣(2 2⍴(av-(ec[1;])÷2),av+(ec[1;])÷2) print 'pcae2.data'
 
