@@ -42,6 +42,6 @@ s←⍕"set label \"angle 1 = ", m1, " degrees (nominally ", (a-90), ")\" at gra
 ⊣⎕fio[4] h
 
 
-⊣(2 2⍴(av-(ec[0;])÷2),av+(ec[0;])÷2) print 'pcae1.data'
-⊣(2 2⍴(av-(ec[1;])÷2),av+(ec[1;])÷2) print 'pcae2.data'
+⊣(2 2⍴(av-(,1 2↑ec)÷2),av+(,1 2↑ec)÷2) print 'pcae1.data'
+⊣(2 2⍴(av-(,¯1 2↑ec)÷2),av+(,¯1 2↑ec)÷2) print 'pcae2.data'
 
