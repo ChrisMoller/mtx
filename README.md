@@ -457,7 +457,7 @@ plot  [0:120][0:80] "pca.data" using 1:2 with points pt 7 ps .75 t 'Samples', \
 
 The gnuplot data was created by:
 
->200 pca 30
+>100 pca 30
 
 <pre>
 
