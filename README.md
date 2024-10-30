@@ -379,6 +379,10 @@ Note that
 
 I.e., the eigenvectors are orthogonal, as expected.
 
+Note also that the eigenvectors are origin-based.  In the image above, they've
+been arbitrarily translated to where you seem them, at the centroid of the
+sample data.
+
 The APL for all this:
 
 ---
