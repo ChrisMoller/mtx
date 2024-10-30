@@ -1,4 +1,4 @@
-m←c pca a;x;y;c;d;el;ec;xb;yb;xa;ya;co;av;s;⎕io;m0;m1;h
+m←c pca a;x;y;c;d;el;e;ec;xb;yb;xa;ya;co;av;s;⎕io;m0;m1;h
 ⎕io←0
 e←tand a
 x←4×grand c⍴1
@@ -22,21 +22,21 @@ ec←20×evec co
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
 
-m0←atand ec[0;1]÷ec[0;0]
-m1←atand ec[1;1]÷ec[1;0]
+m0←atand ÷/⌽1 2↑ec
+m1←atand ÷/⌽¯1 2↑ec
 
 h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
-s←⍕"set label \"λ0 = ", (1↑el), " (", xa, "%)\" at graph .1,.8\n"
+s←⍕"set label \"eigenvalue λ0 = ", (1↑el), " (", xa, "%)\" at graph .1,.8\n"
 ⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕"set label \"λ1 = ", (¯1↑el), " (", xb, "%)\" at graph .1,.75\n"
+s←⍕"set label \"eigenvalue λ1 = ", (¯1↑el), " (", xb, "%)\" at graph .1,.75\n"
 ⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕"set label \"angle 0 = ", m0, " degress (nominally ", a, ")\" at graph .1,.7\n"
+s←⍕"set label \"slope λ0 = ", m0, " degress (nominally ", a, ")\" at graph .1,.7\n"
 ⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕"set label \"angle 1 = ", m1, " degrees (nominally ", (a-90), ")\" at graph .1,.65\n"
+s←⍕"set label \"slope λ1 = ", m1, " degrees (nominally ", (a-90), ")\" at graph .1,.65\n"
 ⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
 ⊣⎕fio[4] h

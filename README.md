@@ -69,6 +69,27 @@ It's handy to create named lambdas for the mtx opertions.  The ones I use are:
 <li>print  ← {⍺ mtx['p'] ⍵}</li>
 </ul>
 
+cov and cross are both ambivalent, but there's no apparent way to create
+ambivalent lambdas, so I also use:
+
+<pre>
+z←l cross r
+→(0≠⎕nc 'l')/Dyadic
+z←mtx['c'] r
+→0
+Dyadic:
+z←l mtx['c'] r
+</pre>
+
+<pre>
+z←l cov r
+→(0≠⎕nc 'l')/Dyadic
+z←mtx['C'] r
+→0
+Dyadic:
+z←l mtx['C'] r
+</pre>
+
 ## Details
 
 ### Monadic
@@ -165,8 +186,8 @@ For vector or matrix arguments, returns a value of the same shape such that
 >norm 2 3⍴⍳6
 
 <pre>
-0.105 0.21  0.314
-0.419 0.524 0.629
+0     0.135 0.27
+0.405 0.539 0.674
 </pre>
 
 >+/,(norm 2 3⍴⍳6)*2
@@ -215,11 +236,11 @@ length.  The function returns a complex scalar value representing the angle
 between the vectors.  (Frankly, I have no idea what it means if the result has
 a non-zero imaginary component...)
 
->r2d (1 0) angle (1 1)
+>r2d 1 0 angle 1 1
 
 45.0
 
->r2d (1 0 0) angle 1 1 1
+>r2d 1 0 0 angle 1 1 1
 
 54.7
 
@@ -246,42 +267,6 @@ Returns a homogeneous matrix of the given translation and rotation.
  1     2      3     1
 </pre>
 
-### Ambivalent
-
-The direct invocation of these functions, mtx['c'] and mtx['C'] respectively,
-are ambivalent, but there's no way I could find to make named lambdas
-ambivalent.  Accordingly, I've suggested two lambdas for each of those
-functions:
-<br/>
-
-| lambda       |   function       |                     
-| :----------- | :--------------: |
-| crossd       | ⍺ mtx['c'] ⍵ |  
-| crossm       | &nbsp; mtx['c'] ⍵ | 
-| covd         | ⍺ mtx['C'] ⍵ |  
-| crovm        | &nbsp; mtx['C'] ⍵ |
-
-Or, alternatively:
-
-<pre>
-z←l cross r
-→(0≠⎕nc 'l')/Dyadic
-z←mtx['c'] r
-→0
-Dyadic:
-z←l mtx['c'] r
-</pre>
-
-<pre>
-z←l cov r
-→(0≠⎕nc 'l')/Dyadic
-z←mtx['C'] r
-→0
-Dyadic:
-z←l mtx['C'] r
-</pre>
-
-
 #### Cross product
 
 In dynadic form, both arguments must be rank 1 real or complex vectors and
@@ -297,7 +282,7 @@ shapes [2 3] or [6 7].  mtx, however, doesn't check this and will happily
 give you a result in any dimensionality and leave it your imagination what
 it may mean.
 
->(1 2 3) crossd 4 5 6
+>1 2 3 crossd 4 5 6
 
 ¯3 6 ¯3
 
@@ -374,12 +359,12 @@ sample vectors:
 </pre>
 
 A typical graphical example using a two-variable system of 100 randomised
-samples each results in eigenvalues of [1030.44j0 17.6173j0] and eigenvectors
+samples each results in eigenvalues of [1142.1j0 13.9427j0] and eigenvectors
 of:
 
 <pre>
-   0.902754    0.430156 
-  -0.430156    0.902754
+   0.870314    0.492497 
+  -0.492497    0.870314
 </pre>
 
 as represented in:
@@ -388,7 +373,7 @@ as represented in:
 
 Note that
 
->r2d (0.902754 0.430156) angle (¯0.430156 0.902754)
+>r2d (0.870314    0.492497) angle (¯0.492497    0.870314)
 
 90
 
@@ -409,52 +394,41 @@ xa←(+/xb)÷⍴xb
 ya←(+/yb)÷⍴yb
 av←xa,ya
 d←2 c⍴xb,yb
-x←(⍉2 c⍴d) print 'pca.data'
+⊣(⍉2 c⍴d) print 'pca.data'
 co←covm d
 el←eval co
 ec←20×evec co
 
-x←'eigenvectors' print 'pcaeigensystem.txt'
-x←(ec÷20) print '>pcaeigensystem.txt'
-x←'eigenvalues' print '>pcaeigensystem.txt'
-x←el print '>pcaeigensystem.txt'
+⊣'eigenvectors' print 'pcaeigensystem.txt'
+⊣(ec÷20) print '>pcaeigensystem.txt'
+⊣'eigenvalues' print '>pcaeigensystem.txt'
+⊣el print '>pcaeigensystem.txt'
 
 xa← 100×(1↑el)÷+/el
 xb← 100×(¯1↑el)÷+/el
 
+m0←atand ÷/⌽1 2↑ec
+m1←atand ÷/⌽¯1 2↑ec
+
 h←'w' ⎕fio[3] 'pcalabels.gp'   ⍝ open
 
-s←⍕'set label "λ0 = ', (1↑el), ' (', xa, '%)" at graph .1,.8'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
-⍝x←⎕fio[16] h ⍝ flush
+s←⍕"set label \"eigenvalue λ0 = ", (1↑el), " (", xa, "%)\" at graph .1,.8\n"
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕'set label "λ1 = ', (¯1↑el), ' (', xb, '%)" at graph .1,.75'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
-⍝x←⎕fio[16] h ⍝ flush
+s←⍕"set label \"eigenvalue λ1 = ", (¯1↑el), " (", xb, "%)\" at graph .1,.75\n"
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-m0←atand ec[0;1]÷ec[0;0]
-m1←atand ec[1;1]÷ec[1;0]
+s←⍕"set label \"slope λ0 = ", m0, " degress (nominally ", a, ")\" at graph .1,.7\n"
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕'set label "angle 0 = ', m0, ' degress (nominally ', a, ')" at graph .1,.7'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
+s←⍕"set label \"slope λ1 = ", m1, " degrees (nominally ", (a-90), ")\" at graph .1,.65\n"
+⊣'%s' s ⎕fio[22] h  ⍝ fwrite
 
-s←⍕'set label "angle 1 = ', m1, ' degrees (nominally ', (a-90), ')" at graph .1,.65'
-x←'%s' s ⎕fio[22] h  ⍝ fwrite
-x←⎕fio[16] h ⍝ flush
-x←10⎕fio[42] h     ⍝ newline
-
-x←⎕fio[4] h
+⊣⎕fio[4] h
 
 
-x←(2 2⍴(av-(ec[0;])÷2),av+(ec[0;])÷2) print 'pcae1.data'
-x←(2 2⍴(av-(ec[1;])÷2),av+(ec[1;])÷2) print 'pcae2.data'
-
+⊣(2 2⍴(av-(,1 2↑ec)÷2),av+(,1 2↑ec)÷2) print 'pcae1.data'
+⊣(2 2⍴(av-(,¯1 2↑ec)÷2),av+(,¯1 2↑ec)÷2) print 'pcae2.data'
 
 </pre>
 ---
